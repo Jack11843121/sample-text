@@ -88,6 +88,29 @@ export async function loadProjectFile(path: string): Promise<void> {
   }
 }
 
+/** 持久化当前打开的会话（文件列表 + 活动文件） */
+export function persistWorkspace(): void {
+  const state = store.getState()
+  const openFiles = state.tabOrder.filter((p) => !p.startsWith('untitled://'))
+  const activeFile = state.activePath && !state.activePath.startsWith('untitled://') ? state.activePath : null
+  void api.saveWorkspace({ openFiles, activeFile })
+}
+
+/** 启动时恢复上次打开的会话 */
+export async function restoreWorkspace(): Promise<void> {
+  const ws = await api.loadWorkspace()
+  for (const p of ws.openFiles) {
+    try {
+      await openFile(p)
+    } catch {
+      // 文件已删除/不可读则跳过
+    }
+  }
+  if (ws.activeFile && store.getState().documents.has(ws.activeFile)) {
+    store.setActivePath(ws.activeFile)
+  }
+}
+
 export function normalizeEol(text: string, eol: Eol): string {
   if (eol === 'CRLF') return text.replace(/\r\n|\r|\n/g, '\r\n')
   if (eol === 'CR') return text.replace(/\r\n|\r|\n/g, '\r')

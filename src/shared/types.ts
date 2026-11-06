@@ -80,6 +80,12 @@ export interface LineDiff {
   deleted: number[]
 }
 
+/** 工作区（会话）状态：上次打开的文件与活动文件 */
+export interface WorkspaceState {
+  openFiles: string[]
+  activeFile: string | null
+}
+
 export interface BuildResultMatch {
   file?: string
   line?: number
@@ -256,6 +262,10 @@ export interface SampleTextApi {
   userSettingsPath(): Promise<string>
   userKeymapPath(): Promise<string>
   setSpellCheckEnabled(enabled: boolean): Promise<void>
+
+  // 工作区（会话）持久化
+  loadWorkspace(): Promise<WorkspaceState>
+  saveWorkspace(ws: WorkspaceState): Promise<void>
 
   // 应用
   appSetTitle(title: string): Promise<void>

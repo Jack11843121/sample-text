@@ -18,7 +18,8 @@ import type {
   SearchOptions,
   SettingsDict,
   StatInfo,
-  TreeNode
+  TreeNode,
+  WorkspaceState
 } from '@shared/types'
 
 function invoke<T>(channel: string, ...args: unknown[]): Promise<T> {
@@ -57,6 +58,9 @@ const api: SampleTextApi = {
   userSettingsPath: () => invoke<string>('settings.userPath'),
   userKeymapPath: () => invoke<string>('settings.keymapPath'),
   setSpellCheckEnabled: (enabled: boolean) => invoke<void>('spellcheck.set', enabled),
+
+  loadWorkspace: () => invoke<WorkspaceState>('workspace.load'),
+  saveWorkspace: (ws: WorkspaceState) => invoke<void>('workspace.save', ws),
   watchProjectPaths: (paths: string[]) => invoke<void>('project.watch', paths),
 
   scanPackageResources: (kinds: string[]) => invoke<PackagedResource[]>('packages.scan', kinds),

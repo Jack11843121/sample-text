@@ -7,7 +7,7 @@ import { StatusBar } from './components/StatusBar'
 import { CommandPalette } from './components/CommandPalette'
 import { BuildPanel } from './components/BuildPanel'
 import { FindInFiles } from './components/FindInFiles'
-import { openFile, reloadFile, refreshGitState } from './io'
+import { openFile, reloadFile, refreshGitState, restoreWorkspace, persistWorkspace } from './io'
 import { refreshGitGutter } from './features/gitGutter'
 import { refreshBookmarks } from './features/bookmarks'
 import { emitPluginEvent } from './plugins/host'
@@ -28,12 +28,15 @@ export default function App() {
   const [dragOver, setDragOver] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
-  // 初始化：键位 + 设置 + 主题 + 启动即新建空文件（Sublime 行为）
+  // 初始化：键位 + 设置 + 主题 + 恢复上次会话（无则新建空文件，Sublime 行为）
   useEffect(() => {
     setKeybindings(DEFAULT_KEYBINDINGS)
-    store.newUntitled()
     document.documentElement.dataset.platform = window.sampleText.platform
     void api.settingsGet().then((user) => store.setUserSettings(user))
+
+    void restoreWorkspace().then(() => {
+      if (store.getState().tabOrder.length === 0) store.newUntitled()
+    })
 
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
     const applyTheme = (): void => store.setThemeBase(mq.matches ? 'dark' : 'light')
@@ -51,6 +54,12 @@ export default function App() {
     refreshBookmarks(state.activePath)
     if (state.activePath) emitPluginEvent('view.activated', { path: state.activePath })
   }, [state.activePath])
+
+  // 会话持久化：打开文件集合 / 活动文件变化时（防抖 600ms）保存
+  useEffect(() => {
+    const t = setTimeout(() => persistWorkspace(), 600)
+    return () => clearTimeout(t)
+  }, [state.tabOrder, state.activePath])
 
   // IPC 事件
   useEffect(() => {

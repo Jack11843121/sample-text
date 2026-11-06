@@ -26,12 +26,8 @@ function wire(): void {
 export function initAutoUpdater(sendFn: Send): void {
   sendRef = sendFn
   wire()
-  // 启动后延迟自动检查（仅打包环境，且已配置更新源）
-  if (app.isPackaged) {
-    setTimeout(() => {
-      void checkForUpdates().catch(() => undefined)
-    }, 8000)
-  }
+  // 说明：不在此处自动检查更新（发布未携带 latest-*.yml 时会导致启动弹报错）。
+  // 更新改为由用户主动触发「Check for Updates…」命令。
 }
 
 export async function checkForUpdates(): Promise<void> {

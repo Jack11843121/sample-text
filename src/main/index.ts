@@ -7,6 +7,14 @@ import { IPC } from '../shared/types'
 
 const HEADLESS = process.env.SAMPLE_TEXT_HEADLESS === '1'
 
+// 兜底：主进程未捕获异常不再弹原生错误框，改为记录日志
+process.on('uncaughtException', (err) => {
+  console.error('[main:uncaughtException]', err)
+})
+process.on('unhandledRejection', (reason) => {
+  console.error('[main:unhandledRejection]', reason)
+})
+
 // 无头自检：把 userData 切到可写临时目录（绕过沙箱对 ~/Library 的写限制）
 if (HEADLESS) {
   app.setPath('userData', join(tmpdir(), 'sample-text-headless'))

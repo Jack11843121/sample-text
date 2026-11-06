@@ -17,12 +17,14 @@ import { gitStatus, gitDiffLines } from './services/git'
 import { findInFiles } from './services/search'
 import { getPackageRoots, scanResources, listPackages, fetchChannel, installPackage, removePackage } from './services/packages'
 import { initAutoUpdater, checkForUpdates, quitAndInstall } from './services/updater'
-import { IPC, type BuildResult, type BuildSystem, type SettingsDict, type GitState, type SearchOptions } from '@shared/types'
+import { readWorkspace, writeWorkspace } from './services/workspace'
+import { IPC, type BuildResult, type BuildSystem, type SettingsDict, type GitState, type SearchOptions, type WorkspaceState } from '@shared/types'
 import type { FSWatcher } from 'chokidar'
 
 let win: BrowserWindow | null = null
 let fsWatcher: FSWatcher | null = null
 let watchedPaths: string[] = []
+let ipcHandlersRegistered = false
 
 function send(channel: string, ...args: unknown[]): void {
   if (win && !win.isDestroyed()) win.webContents.send(channel, ...args)
@@ -34,6 +36,11 @@ function handle<T>(channel: string, fn: (...args: never[]) => Promise<T> | T): v
 
 export function registerIpc(window: BrowserWindow): void {
   win = window
+  // ipcMain.handle 只能注册一次：macOS 上窗口关闭后再次 activate 会重建窗口，
+  // 此处必须跳过重复注册，仅重绑当前窗口引用，否则抛「Attempted to register a second handler」。
+  if (ipcHandlersRegistered) return
+  ipcHandlersRegistered = true
+
   initAutoUpdater(send)
 
   // ---- 文件系统 ----
@@ -110,6 +117,10 @@ export function registerIpc(window: BrowserWindow): void {
   handle('settings.set', (patch: SettingsDict) => writeUserSettings(patch))
   handle('settings.userPath', () => getUserSettingsPath())
   handle('settings.keymapPath', () => getUserKeymapPath())
+
+  // ---- 工作区（会话） ----
+  handle('workspace.load', (): Promise<WorkspaceState> => readWorkspace())
+  handle('workspace.save', (ws: WorkspaceState) => writeWorkspace(ws))
 
   // ---- 拼写检查 ----
   handle('spellcheck.set', (enabled: boolean) => {

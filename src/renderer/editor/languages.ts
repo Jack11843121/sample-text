@@ -101,14 +101,26 @@ export function languageForExtension(ext: string): string {
   return EXT_TO_LANG[clean] ?? 'plaintext'
 }
 
-/** 判断是否可当作文本打开的文件（用于目录树过滤：隐藏图片/二进制等） */
+/** 已知二进制/多媒体/压缩包等「非文本」扩展名（黑名单） */
+const BINARY_EXT = new Set([
+  'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'ico', 'icns', 'tiff', 'heic', 'heif',
+  'zip', 'tar', 'gz', 'bz2', '7z', 'rar', 'xz', 'zst',
+  'exe', 'dll', 'so', 'dylib', 'o', 'a', 'lib', 'class', 'bin', 'wasm', 'pyc', 'pyo',
+  'mp3', 'mp4', 'mov', 'avi', 'mkv', 'wav', 'ogg', 'flac', 'webm', 'm4a', 'm4v', 'wmv',
+  'ttf', 'otf', 'woff', 'woff2', 'eot',
+  'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
+  'db', 'sqlite', 'sqlite3', 'dmg', 'iso', 'pkg', 'jar', 'war', 'apk', 'ipa', 'aab'
+])
+
+/** 判断是否可当作文本打开（黑名单：仅隐藏二进制/图片/压缩包/音视频等，其余均视为文本） */
 export function isTextFile(path: string): boolean {
   const slash = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'))
   const base = path.slice(slash + 1)
+  if (base === '.DS_Store') return false
   const dot = base.lastIndexOf('.')
-  if (dot < 0) return true // 无扩展名（Makefile/README/LICENSE 等）按文本处理
+  if (dot <= 0) return true // 无扩展名或点文件（.bashrc/.eslintrc/.env 等）按文本处理
   const ext = base.slice(dot + 1).toLowerCase()
-  return EXT_TO_LANG[ext] !== undefined
+  return !BINARY_EXT.has(ext)
 }
 
 let registered = false

@@ -170,6 +170,25 @@ async function runHeadlessSelfCheck(win: BrowserWindow): Promise<void> {
         return 'palette='+!!document.querySelector('.palette')+' input='+!!document.querySelector('.palette-input')
       })()`
     )
+    // 文件监视专项测试：真实建目录→挂载→新增文件→验证渲染层收到 FS_CHANGED
+    const watchDir = join(tmpdir(), 'st-watch-' + Date.now())
+    {
+      const fsp = await import('fs/promises')
+      await fsp.mkdir(watchDir, { recursive: true })
+      await fsp.writeFile(join(watchDir, 'a.txt'), 'a')
+    }
+    await ck('watchSetup', `(async()=>{
+      window.__fsEvents=[]
+      window.sampleText.on('fs:changed',(ev)=>{window.__fsEvents.push(ev)})
+      await window.sampleText.watchProjectPaths(['${watchDir}'])
+      return 'done'
+    })()`)
+    {
+      const fsp = await import('fs/promises')
+      await fsp.writeFile(join(watchDir, 'b.txt'), 'b')
+    }
+    await new Promise((r) => setTimeout(r, 2500))
+    await ck('watchEvents', `JSON.stringify((window.__fsEvents||[]).map(e=>e.event+':'+String(e.path||'').split('/').pop()))`)
     console.log('SELFTEST=' + JSON.stringify(results))
     app.quit()
     setTimeout(() => app.exit(0), 3000)

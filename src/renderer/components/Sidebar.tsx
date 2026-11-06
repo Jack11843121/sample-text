@@ -60,7 +60,7 @@ function TreeRow({
     <>
       <div
         className="tree-row"
-        style={{ paddingLeft: depth * 14 + 6 }}
+        style={{ paddingLeft: depth * 16 + 10 }}
         title={node.path}
         onClick={() => {
           if (isDir) {

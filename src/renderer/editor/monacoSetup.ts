@@ -34,7 +34,7 @@ export function initMonaco(): void {
       { token: 'constant', foreground: 'AE81FF' },
       { token: 'type', foreground: '66D9EF' },
       { token: 'type.identifier', foreground: '66D9EF' },
-      { token: 'identifier', foreground: 'A6E22E' },
+      { token: 'identifier', foreground: 'F8F8F2' },
       { token: 'function', foreground: 'A6E22E' },
       { token: 'delimiter', foreground: 'F8F8F2' },
       { token: 'tag', foreground: 'F92672' },
@@ -42,8 +42,7 @@ export function initMonaco(): void {
       { token: 'attribute.value', foreground: 'E6DB74' },
       { token: 'annotation', foreground: '75715E' },
       { token: 'operator', foreground: 'F92672' },
-      { token: 'regexp', foreground: 'AE81FF' },
-      { token: 'variable', foreground: 'FD971F' }
+      { token: 'regexp', foreground: 'AE81FF' }
     ],
     colors: {
       'editor.background': '#272822',

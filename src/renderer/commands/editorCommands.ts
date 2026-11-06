@@ -77,6 +77,12 @@ reg('single_selection', () => {
 }, 'Single Selection', 'Selection')
 reg('insert_cursor_above', () => action('editor.action.insertCursorAbove'), 'Add Previous Line', 'Selection')
 reg('insert_cursor_below', () => action('editor.action.insertCursorBelow'), 'Add Next Line', 'Selection')
+
+// 竖向（矩形/列）选择
+reg('column_select_up', () => action('cursorColumnSelectUp'), 'Column Select Up', 'Selection')
+reg('column_select_down', () => action('cursorColumnSelectDown'), 'Column Select Down', 'Selection')
+reg('column_select_left', () => action('cursorColumnSelectLeft'), 'Column Select Left', 'Selection')
+reg('column_select_right', () => action('cursorColumnSelectRight'), 'Column Select Right', 'Selection')
 reg('insert_cursor_to_end_of_each_line', () => action('editor.action.insertCursorAtEndOfEachLineSelected'), 'Split into Lines', 'Selection')
 reg('split_selection_into_lines', () => action('editor.action.insertCursorAtEndOfEachLineSelected'), 'Split into Lines', 'Selection')
 reg('select_all', () => action('editor.action.selectAll'), 'Select All', 'Selection')

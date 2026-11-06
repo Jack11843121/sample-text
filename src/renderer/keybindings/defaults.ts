@@ -25,7 +25,7 @@ export const DEFAULT_KEYBINDINGS: KeyBindingRule[] = [
 
   // 查找
   { keys: ['primary+f'], command: 'show_find' },
-  { keys: ['primary+h'], command: 'show_replace' },
+  { keys: ['primary+alt+f'], command: 'show_replace' },
   { keys: ['primary+shift+f'], command: 'find_in_files' },
   { keys: ['f3'], command: 'find_next' },
   { keys: ['shift+f3'], command: 'find_previous' },
@@ -45,6 +45,12 @@ export const DEFAULT_KEYBINDINGS: KeyBindingRule[] = [
   { keys: ['primary+ctrl+down'], command: 'insert_cursor_below' },
   { keys: ['primary+m'], command: 'jump_to_bracket' },
   { keys: ['primary+shift+a'], command: 'expand_selection_to_tag' },
+
+  // 竖向（列）选择
+  { keys: ['shift+alt+up'], command: 'column_select_up' },
+  { keys: ['shift+alt+down'], command: 'column_select_down' },
+  { keys: ['shift+alt+left'], command: 'column_select_left' },
+  { keys: ['shift+alt+right'], command: 'column_select_right' },
 
   // 编辑
   { keys: ['primary+z'], command: 'undo' },

@@ -38,11 +38,8 @@ export default function App() {
       if (store.getState().tabOrder.length === 0) store.newUntitled()
     })
 
-    const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    const applyTheme = (): void => store.setThemeBase(mq.matches ? 'dark' : 'light')
-    applyTheme()
-    mq.addEventListener('change', applyTheme)
-    return () => mq.removeEventListener('change', applyTheme)
+    // 默认强制深色（Sublime 深色系），不跟随系统浅色
+    store.setThemeBase('dark')
   }, [])
 
   useEffect(() => {

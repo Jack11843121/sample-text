@@ -19,14 +19,32 @@
 
 ### 下载安装（推荐）
 
-在 [Releases](https://github.com/Jack11843121/sample-text) 页面下载对应平台安装包：
+前往 [Releases](https://github.com/Jack11843121/sample-text/releases) 下载对应平台安装包：
 
-| 平台 | 安装包 | 说明 |
+| 平台 | 安装包 | 安装方式 |
 |---|---|---|
-| macOS | `sample-text-*.dmg` | 打开后拖入「应用程序」。未签名构建首次会被 Gatekeeper 拦截，需**右键 → 打开**（或执行 `xattr -dr com.apple.quarantine /Applications/sample-text.app`）。 |
-| Windows | `sample-text-Setup-*.exe` | NSIS 安装器。未签名构建会触发 SmartScreen 警告，点「更多信息 → 仍要运行」。 |
+| macOS（Apple Silicon） | `sample-text-0.1.0-mac-arm64.zip` | 解压后把 `sample-text.app` 拖入「应用程序」。未签名，首次打开需 **右键 → 打开**（或 `xattr -dr com.apple.quarantine /Applications/sample-text.app`） |
+| Windows（x64） | `sample-text-0.1.0-win-x64.zip` | 解压后双击 `sample-text.exe`。SmartScreen 提示时点「更多信息 → 仍要运行」 |
 
-> 另提供免安装的 Windows 便携包 `sample-text-*-win-x64.zip`（解压即用）与 macOS `zip` 包。
+### 生成正式安装包（`.dmg` / `.exe`）
+
+想要更正式的拖拽安装 `dmg` 或 `exe` 安装器？在**对应系统本机**执行一条命令即可：
+
+| 目标产物 | 命令 | 在哪台机器执行 |
+|---|---|---|
+| macOS `dmg`（Apple Silicon） | `npm run build:mac:arm64` | macOS（M 系列芯片） |
+| macOS `dmg`（Intel） | `npm run build:mac:x64` | macOS（Intel / 有 Rosetta） |
+| Windows NSIS `.exe` 安装器 | `npm run build:win` | Windows 本机 |
+| Windows 便携 `zip` | `npm run build:win:zip` | 任意机（含 macOS 交叉） |
+
+产物统一输出到 `release/` 目录。前置条件：
+
+- **macOS**：安装 Xcode 命令行工具（`xcode-select --install`，需含 `hdiutil`）。
+- **Windows**：Node.js ≥ 20。
+- 首次打包会自动下载 Electron / electron-builder 二进制；国内网络可在命令前加 `ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/`。
+
+> **为什么仓库的 Releases 里是 `zip` 便携包而不是 `.dmg`/`.exe`？**
+> `.dmg` 依赖 macOS 自带的 `hdiutil`、`.exe` 的 NSIS 依赖 `makensis`（x86_64 二进制），二者都无法在无图形界面的 CI 或 arm64 交叉环境生成，因此仓库直接发布的是免安装 zip。按上表在对应系统本机跑一条命令即可产出正式安装器。
 
 ### 从源码运行
 

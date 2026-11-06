@@ -21,7 +21,7 @@ export function initMonaco(): void {
     }
   }
 
-  monaco.editor.defineTheme('sample-text Dark', {
+  monaco.editor.defineTheme('sample-text-dark', {
     base: 'vs-dark',
     inherit: true,
     rules: [
@@ -68,7 +68,7 @@ export function initMonaco(): void {
     }
   })
 
-  monaco.editor.defineTheme('sample-text Light', {
+  monaco.editor.defineTheme('sample-text-light', {
     base: 'vs',
     inherit: true,
     rules: [
@@ -107,5 +107,5 @@ export function initMonaco(): void {
 }
 
 export function editorTheme(base: 'dark' | 'light'): string {
-  return base === 'dark' ? 'sample-text Dark' : 'sample-text Light'
+  return base === 'dark' ? 'sample-text-dark' : 'sample-text-light'
 }

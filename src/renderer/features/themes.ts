@@ -140,12 +140,22 @@ function colorToMonaco(hex: string | undefined): string | undefined {
   return undefined
 }
 
+/** Monaco 主题名仅允许 [a-z0-9-]，此处归一化用户提供的主题名 */
+export function sanitizeThemeName(name: string): string {
+  const cleaned = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+  return cleaned || 'custom-theme'
+}
+
 /** 将解析结果注册为 Monaco 主题 */
 export function registerScheme(scheme: ParsedScheme): void {
+  const themeName = sanitizeThemeName(scheme.name)
   const g = scheme.globalColors
   const base = colorToMonaco(g.background)
   const isDark = base ? isDarkColor(base) : true
-  monaco.editor.defineTheme(scheme.name, {
+  monaco.editor.defineTheme(themeName, {
     base: isDark ? 'vs-dark' : 'vs',
     inherit: true,
     rules: scheme.rules.map((r) => ({
@@ -186,5 +196,6 @@ export function listSchemes(): { name: string; isDark?: boolean }[] {
 }
 
 export function addSchemeEntry(name: string, isDark?: boolean): void {
-  if (!schemeList.some((s) => s.name === name)) schemeList.push({ name, isDark })
+  const n = sanitizeThemeName(name)
+  if (!schemeList.some((s) => s.name === n)) schemeList.push({ name: n, isDark })
 }

@@ -15,8 +15,8 @@ const api = window.sampleText
 /** 启动时扫描 Packages 目录，加载 snippet/completions/配色方案/TextMate 语法 */
 export async function loadPackageResources(): Promise<void> {
   bindEditorAccessor(() => getFocusedEditor())
-  addSchemeEntry('sample-text Dark', true)
-  addSchemeEntry('sample-text Light', false)
+  addSchemeEntry('sample-text-dark', true)
+  addSchemeEntry('sample-text-light', false)
   warmTextMate()
   try {
     const resources = await api.scanPackageResources([

@@ -19,7 +19,7 @@
 
 ### 下载安装（推荐）
 
-在 [Releases](https://github.com/sample-text/sample-text) 页面下载对应平台安装包：
+在 [Releases](https://github.com/Jack11843121/sample-text) 页面下载对应平台安装包：
 
 | 平台 | 安装包 | 说明 |
 |---|---|---|

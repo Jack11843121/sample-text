@@ -6,7 +6,7 @@
   "main": "./out/main/index.js",
   "author": "sample-text Contributors",
   "license": "MIT",
-  "homepage": "https://github.com/sample-text/sample-text",
+  "homepage": "https://github.com/Jack11843121/sample-text",
   "scripts": {
     "dev": "electron-vite dev",
     "dev:web": "electron-vite dev --rendererOnly",

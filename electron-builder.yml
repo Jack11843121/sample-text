@@ -6,7 +6,7 @@ directories:
   buildResources: build
 publish:
   provider: github
-  owner: your-github-username
+  owner: Jack11843121
   repo: sample-text
 files:
   - out/**/*

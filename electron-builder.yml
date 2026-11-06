@@ -1,0 +1,56 @@
+appId: com.sampletext.app
+productName: sample-text
+copyright: Copyright © 2026 sample-text Contributors
+directories:
+  output: release
+  buildResources: build
+publish:
+  provider: github
+  owner: your-github-username
+  repo: sample-text
+files:
+  - out/**/*
+  - package.json
+asar: true
+asarUnpack:
+  - node_modules/vscode-oniguruma/**/*
+  - resources/**/*
+npmRebuild: false
+mac:
+  category: public.app-category.developer-tools
+  icon: build/icon.png
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+    - target: zip
+      arch: [x64, arm64]
+  artifactName: ${productName}-${version}-mac-${arch}.${ext}
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  extendInfo:
+    NSDocumentsFolderUsageDescription: 需要访问文档以打开和编辑文件
+    NSDesktopFolderUsageDescription: 需要访问桌面以打开和编辑文件
+win:
+  signAndEditExecutable: false
+  icon: build/icon.png
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: zip
+      arch: [x64]
+  artifactName: ${productName}-${version}-win-${arch}.${ext}
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: sample-text
+  artifactName: ${productName}-Setup-${version}.${ext}
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Development

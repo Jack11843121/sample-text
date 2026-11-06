@@ -1,0 +1,104 @@
+:root {
+  --bg: #1e1e1e;
+  --bg-soft: #252526;
+  --bg-softer: #2d2d30;
+  --bg-input: #3c3c3c;
+  --fg: #d4d4d4;
+  --fg-dim: #9d9d9d;
+  --fg-faint: #6a6a6a;
+  --border: #333333;
+  --accent: #4e94ff;
+  --accent-soft: #274a8c;
+  --statusbar: #007acc;
+  --tab-active: #1e1e1e;
+  --tab-inactive: #2d2d2d;
+  --danger: #f14c4c;
+  --scrollbar: #4a4a4a;
+}
+
+:root[data-theme='light'] {
+  --bg: #ffffff;
+  --bg-soft: #f3f3f3;
+  --bg-softer: #ececec;
+  --bg-input: #ffffff;
+  --fg: #333333;
+  --fg-dim: #717171;
+  --fg-faint: #a0a0a0;
+  --border: #e0e0e0;
+  --accent: #0066d6;
+  --accent-soft: #d0e4ff;
+  --statusbar: #3a86d6;
+  --tab-active: #ffffff;
+  --tab-inactive: #ececec;
+  --scrollbar: #c8c8c8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Roboto,
+    Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  color: var(--fg);
+  background: var(--bg);
+}
+
+:root[data-theme='light'] body,
+body {
+  background: var(--bg);
+}
+
+.app-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+/* 拖拽区域样式（macOS hiddenInset） */
+.titlebar-drag {
+  -webkit-app-region: drag;
+}
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar);
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #5a5a5a;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+.monaco-editor,
+.monaco-editor .margin,
+.monaco-editor-background {
+  background-color: var(--bg) !important;
+}

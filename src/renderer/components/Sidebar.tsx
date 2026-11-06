@@ -68,7 +68,6 @@ function TreeRow({
         }}
       >
         <span className={'tree-chevron' + (isDir ? '' : ' hidden')}>{expanded ? '▾' : '▸'}</span>
-        <span className="tree-glyph">{isDir ? (expanded ? '📂' : '📁') : '📄'}</span>
         <span className="tree-name">{node.name}</span>
         <span className={'git-badge g-' + gitStatus[node.path]}>{gitStatus[node.path] ?? ''}</span>
       </div>

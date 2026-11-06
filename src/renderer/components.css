@@ -215,7 +215,7 @@
 .statusbar {
   height: 24px;
   background: var(--statusbar);
-  color: #fff;
+  color: var(--statusbar-fg);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -223,6 +223,7 @@
   font-size: 12px;
   flex: none;
   user-select: none;
+  border-top: 1px solid var(--border);
 }
 .status-item {
   white-space: nowrap;

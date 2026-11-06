@@ -144,37 +144,15 @@ async function runHeadlessSelfCheck(win: BrowserWindow): Promise<void> {
     await ck('openDialog', 'Promise.race([window.sampleText.openDialog().then(r=>"resolve:"+r.canceled+":"+(r.paths||[]).length).catch(e=>"REJECT:"+e.message), new Promise(res=>setTimeout(()=>res("TIMEOUT"),4000))])')
     await ck('openFolderDialog', 'Promise.race([window.sampleText.openFolderDialog().then(r=>"resolve:"+r.canceled).catch(e=>"REJECT:"+e.message), new Promise(res=>setTimeout(()=>res("TIMEOUT"),4000))])')
     // 真实点击测试：点「新建文件」按钮（不依赖原生对话框），验证 React 点击链路
+    // 启动即新建空文件 + Monaco 编辑器创建 + 标签渲染
     await ck(
-      'clickNewFile',
+      'startup',
       `(async()=>{
-        const btns=[...document.querySelectorAll('button')]
-        const b=btns.find(x=>x.textContent.includes('新建文件'))
-        if(!b) return 'no-button:'+btns.length
-        let native=0
-        b.addEventListener('click', ()=>{native++})
-        b.click()
-        await new Promise(r=>setTimeout(r,800))
-        return 'native='+native+' tabs='+document.querySelectorAll('.tab').length+' welcomeGone='+(!document.querySelector('.welcome'))+' empty='+(document.querySelector('.welcome')?'WELCOME':'NO-WELCOME')
+        await new Promise(r=>setTimeout(r,2000))
+        return 'tabs='+document.querySelectorAll('.tab').length+' editors='+document.querySelectorAll('.monaco-editor').length+' lines='+document.querySelectorAll('.view-lines').length
       })()`
     )
-    // 直连探针：绕过 React onClick，直接调用命令，验证 store/命令链路
-    await ck(
-      'directCmd',
-      `(async()=>{
-        window.__d.runCommand('new_file')
-        await new Promise(r=>setTimeout(r,500))
-        return 'tabs='+document.querySelectorAll('.tab').length+' welcome='+!!document.querySelector('.welcome')+' tabOrder='+(window.__d.store.getState().tabOrder||[]).length
-      })()`
-    )
-    // Monaco 编辑器是否真实创建
-    await ck(
-      'monaco',
-      `(async()=>{
-        await new Promise(r=>setTimeout(r,1500))
-        return 'editors='+document.querySelectorAll('.monaco-editor').length+' lines='+document.querySelectorAll('.view-lines').length
-      })()`
-    )
-    // 快捷键：Cmd/Ctrl+Shift+P 打开命令面板
+    // 快捷键：Cmd/Ctrl+Shift+P 打开命令面板（验证 React 重渲染 + 键位）
     await ck(
       'paletteKey',
       `(async()=>{

@@ -19,42 +19,8 @@ import { IPC } from '@shared/types'
 const api = window.sampleText
 
 function Welcome() {
-  const state = useAppState()
-  const recent = state.ui.recentFiles.slice(0, 8)
-  const isMac = window.sampleText.platform === 'darwin'
-  const mod = isMac ? '⌘' : 'Ctrl+'
-  return (
-    <div className="welcome">
-      <div className="welcome-inner">
-        <div className="welcome-logo">st</div>
-        <h1>sample-text</h1>
-        <p className="welcome-sub">轻量 · 跨平台 · 文本处理与代码编辑</p>
-        <div className="welcome-actions">
-          <button className="primary" onClick={() => runCommand('open_file_dialog')}>
-            打开文件…
-          </button>
-          <button onClick={() => runCommand('open_folder_dialog')}>打开文件夹…</button>
-          <button onClick={() => runCommand('new_file')}>新建文件</button>
-        </div>
-        {recent.length > 0 ? (
-          <div className="welcome-recent">
-            <div className="welcome-recent-title">最近打开</div>
-            {recent.map((p) => (
-              <div key={p} className="welcome-recent-item" title={p} onClick={() => void openFile(p)}>
-                <span className="welcome-recent-file">📄 {p.split('/').pop()}</span>
-                <span className="welcome-recent-path">{p}</span>
-              </div>
-            ))}
-          </div>
-        ) : null}
-        <div className="welcome-hints">
-          <div><kbd>{mod}P</kbd> Goto Anything</div>
-          <div><kbd>{mod}⇧P</kbd> 命令面板</div>
-          <div><kbd>{mod}D</kbd> 多光标</div>
-        </div>
-      </div>
-    </div>
-  )
+  // Sublime 风格：无欢迎页，空态即空白画布（通常因启动自动新建文件而不可见）
+  return <div className="welcome" />
 }
 
 export default function App() {
@@ -62,9 +28,10 @@ export default function App() {
   const [dragOver, setDragOver] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
-  // 初始化：键位 + 设置 + 主题
+  // 初始化：键位 + 设置 + 主题 + 启动即新建空文件（Sublime 行为）
   useEffect(() => {
     setKeybindings(DEFAULT_KEYBINDINGS)
+    store.newUntitled()
     void api.settingsGet().then((user) => store.setUserSettings(user))
 
     const mq = window.matchMedia('(prefers-color-scheme: dark)')

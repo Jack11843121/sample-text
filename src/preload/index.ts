@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type {
   BuildSystem,
+  ContextMenuEntry,
   Encoding,
   Eol,
   GitState,
@@ -42,6 +43,8 @@ const api: SampleTextApi = {
   tree: (path: string) => invoke<TreeNode>('fs.tree', path),
   listFiles: (root: string) => invoke<string[]>('fs.listFiles', root),
   exists: (path: string) => invoke<boolean>('fs.exists', path),
+  deletePath: (path: string) => invoke<void>('fs.delete', path),
+  showContextMenu: (entries: ContextMenuEntry[]) => invoke<string | null>('menu.context', entries),
 
   loadProject: (projectFilePath?: string) => invoke<ProjectData | null>('project.load', projectFilePath),
   resolveProject: (folderPath: string) => invoke<ProjectData | null>('project.resolve', folderPath),

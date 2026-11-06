@@ -101,6 +101,12 @@ export interface SearchHit {
   text: string
 }
 
+export interface ContextMenuEntry {
+  id: string
+  label: string
+  danger?: boolean
+}
+
 export interface SearchOptions {
   query: string
   caseSensitive?: boolean
@@ -229,6 +235,8 @@ export interface SampleTextApi {
   tree(path: string): Promise<TreeNode>
   listFiles(root: string): Promise<string[]>
   exists(path: string): Promise<boolean>
+  deletePath(path: string): Promise<void>
+  showContextMenu(entries: ContextMenuEntry[]): Promise<string | null>
 
   // 项目
   loadProject(projectFilePath?: string): Promise<ProjectData | null>

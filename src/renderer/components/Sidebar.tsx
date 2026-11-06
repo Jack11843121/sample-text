@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { store, useAppState } from '../store'
-import { openFile, openFolder } from '../io'
+import { openFile, openFolder, closePath } from '../io'
 import { isTextFile } from '../editor/languages'
 import type { TreeNode } from '@shared/types'
 
@@ -56,6 +56,34 @@ function TreeRow({
   }, [expanded, node.path, treeVersion])
 
   const isDir = node.isDirectory
+
+  const onContextMenu = async (e: React.MouseEvent): Promise<void> => {
+    e.preventDefault()
+    e.stopPropagation()
+    const action = await api.showContextMenu([
+      { id: 'reveal', label: '在文件管理器中显示' },
+      { id: 'copy_path', label: '复制路径' },
+      { id: 'delete', label: '删除', danger: true }
+    ])
+    if (action === 'reveal') {
+      void api.showItemInFolder(node.path)
+    } else if (action === 'copy_path') {
+      void api.copyPath(node.path)
+      store.notify('已复制路径')
+    } else if (action === 'delete') {
+      const kind = isDir ? '文件夹' : '文件'
+      if (!window.confirm(`确定删除${kind}「${node.name}」及其内容吗？此操作不可恢复。`)) return
+      try {
+        await api.deletePath(node.path)
+        if (store.getState().documents.has(node.path)) closePath(node.path)
+        store.bumpTreeVersion()
+        store.notify(`已删除 ${node.name}`)
+      } catch (err) {
+        store.notify('删除失败：' + String((err as Error)?.message ?? err), 5000)
+      }
+    }
+  }
+
   return (
     <>
       <div
@@ -69,6 +97,7 @@ function TreeRow({
             void openFile(node.path)
           }
         }}
+        onContextMenu={(e) => void onContextMenu(e)}
       >
         <span className={'tree-chevron' + (isDir ? '' : ' hidden')}>{expanded ? '▾' : '▸'}</span>
         <span className="tree-name">{node.name}</span>

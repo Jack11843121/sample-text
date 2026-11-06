@@ -90,6 +90,11 @@ export async function existsOk(path: string): Promise<boolean> {
   }
 }
 
+/** 删除文件或目录（递归；force=true 忽略不存在） */
+export async function deletePath(path: string): Promise<void> {
+  await fs.rm(path, { recursive: true, force: true })
+}
+
 /** 递归列出目录下所有文件（用于 Goto Anything / Find in Files），跳过忽略项 */
 export async function listFiles(root: string): Promise<string[]> {
   const out: string[] = []

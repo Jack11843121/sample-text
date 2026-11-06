@@ -1,4 +1,4 @@
-import { BrowserWindow, dialog, ipcMain, shell, clipboard } from 'electron'
+import { BrowserWindow, dialog, ipcMain, shell, clipboard, Menu } from 'electron'
 import {
   readFile,
   writeFile,
@@ -7,6 +7,7 @@ import {
   tree,
   existsOk,
   listFiles,
+  deletePath,
   watchPaths,
   type FsChangeEvent
 } from './services/filesystem'
@@ -51,6 +52,19 @@ export function registerIpc(window: BrowserWindow): void {
   handle('fs.tree', (p: string) => tree(p))
   handle('fs.exists', (p: string) => existsOk(p))
   handle('fs.listFiles', (root: string) => listFiles(root))
+  handle('fs.delete', (path: string) => deletePath(path))
+
+  // ---- 右键菜单 ----
+  handle('menu.context', (entries: { id: string; label: string; danger?: boolean }[]) => {
+    return new Promise<string | null>((resolve) => {
+      const template = entries.map((e) => ({
+        label: e.label,
+        click: () => resolve(e.id)
+      }))
+      const menu = Menu.buildFromTemplate(template)
+      menu.popup({ window: win ?? undefined, callback: () => resolve(null) })
+    })
+  })
 
   // ---- 对话框（不绑定窗口：macOS 上以独立浮窗形式，最稳） ----
   handle('dialog.openFile', async () => {

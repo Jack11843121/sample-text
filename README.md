@@ -88,8 +88,8 @@
 
 | 平台 | 安装包 | 安装方式 |
 |---|---|---|
-| macOS（Apple Silicon） | `sample-text-0.1.9-mac-arm64.zip` | 解压后把 `sample-text.app` 拖入「应用程序」，首次打开需 **右键 → 打开** |
-| Windows（x64） | `sample-text-0.1.9-win-x64.zip` | 解压后双击 `sample-text.exe`，SmartScreen 提示点「更多信息 → 仍要运行」 |
+| macOS（Apple Silicon） | `sample-text-0.1.10-mac-arm64.zip` | 解压后把 `sample-text.app` 拖入「应用程序」，首次打开需 **右键 → 打开** |
+| Windows（x64） | `sample-text-0.1.10-win-x64.zip` | 解压后双击 `sample-text.exe`，SmartScreen 提示点「更多信息 → 仍要运行」 |
 
 > 想要 `.dmg` / `.exe` 安装器？见下方「生成正式安装包」。
 

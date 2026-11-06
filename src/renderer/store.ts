@@ -173,6 +173,9 @@ export class AppStore {
   }
 
   private emit(): void {
+    // 关键：useSyncExternalStore 依赖 getSnapshot 的引用变化（Object.is）判定是否重渲染。
+    // 因此每次 emit 必须重置顶层引用，不能原地只改 this.state 字段。
+    this.state = { ...this.state }
     for (const l of this.listeners) l()
   }
 

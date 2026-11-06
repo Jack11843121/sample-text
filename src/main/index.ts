@@ -102,7 +102,7 @@ function createMainWindow(): BrowserWindow {
 
   if (HEADLESS) {
     win.webContents.on('console-message', (_e, level, message, line, sourceId) => {
-      if (level >= 3) console.log('[renderer:error]', message, '@' + line, sourceId)
+      if (level >= 2) console.log('[renderer:' + level + ']', message, '@' + line, sourceId)
     })
   }
 
@@ -143,6 +143,47 @@ async function runHeadlessSelfCheck(win: BrowserWindow): Promise<void> {
     await ck('stat', 'window.sampleText.stat("/etc/hosts").then(r=>"resolve:"+r.exists).catch(e=>"REJECT:"+e.message)')
     await ck('openDialog', 'Promise.race([window.sampleText.openDialog().then(r=>"resolve:"+r.canceled+":"+(r.paths||[]).length).catch(e=>"REJECT:"+e.message), new Promise(res=>setTimeout(()=>res("TIMEOUT"),4000))])')
     await ck('openFolderDialog', 'Promise.race([window.sampleText.openFolderDialog().then(r=>"resolve:"+r.canceled).catch(e=>"REJECT:"+e.message), new Promise(res=>setTimeout(()=>res("TIMEOUT"),4000))])')
+    // 真实点击测试：点「新建文件」按钮（不依赖原生对话框），验证 React 点击链路
+    await ck(
+      'clickNewFile',
+      `(async()=>{
+        const btns=[...document.querySelectorAll('button')]
+        const b=btns.find(x=>x.textContent.includes('新建文件'))
+        if(!b) return 'no-button:'+btns.length
+        let native=0
+        b.addEventListener('click', ()=>{native++})
+        b.click()
+        await new Promise(r=>setTimeout(r,800))
+        return 'native='+native+' tabs='+document.querySelectorAll('.tab').length+' welcomeGone='+(!document.querySelector('.welcome'))+' empty='+(document.querySelector('.welcome')?'WELCOME':'NO-WELCOME')
+      })()`
+    )
+    // 直连探针：绕过 React onClick，直接调用命令，验证 store/命令链路
+    await ck(
+      'directCmd',
+      `(async()=>{
+        window.__d.runCommand('new_file')
+        await new Promise(r=>setTimeout(r,500))
+        return 'tabs='+document.querySelectorAll('.tab').length+' welcome='+!!document.querySelector('.welcome')+' tabOrder='+(window.__d.store.getState().tabOrder||[]).length
+      })()`
+    )
+    // Monaco 编辑器是否真实创建
+    await ck(
+      'monaco',
+      `(async()=>{
+        await new Promise(r=>setTimeout(r,1500))
+        return 'editors='+document.querySelectorAll('.monaco-editor').length+' lines='+document.querySelectorAll('.view-lines').length
+      })()`
+    )
+    // 快捷键：Cmd/Ctrl+Shift+P 打开命令面板
+    await ck(
+      'paletteKey',
+      `(async()=>{
+        const meta = window.sampleText.platform==='darwin'
+        window.dispatchEvent(new KeyboardEvent('keydown',{key:'P',shiftKey:true,metaKey:meta,ctrlKey:!meta,bubbles:true,cancelable:true}))
+        await new Promise(r=>setTimeout(r,400))
+        return 'palette='+!!document.querySelector('.palette')+' input='+!!document.querySelector('.palette-input')
+      })()`
+    )
     console.log('SELFTEST=' + JSON.stringify(results))
     app.quit()
     setTimeout(() => app.exit(0), 3000)

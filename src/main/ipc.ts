@@ -45,17 +45,17 @@ export function registerIpc(window: BrowserWindow): void {
   handle('fs.exists', (p: string) => existsOk(p))
   handle('fs.listFiles', (root: string) => listFiles(root))
 
-  // ---- 对话框 ----
+  // ---- 对话框（不绑定窗口：macOS 上以独立浮窗形式，最稳） ----
   handle('dialog.openFile', async () => {
-    const r = await dialog.showOpenDialog(win!, { properties: ['openFile', 'multiSelections'] })
+    const r = await dialog.showOpenDialog({ properties: ['openFile', 'multiSelections'] })
     return { canceled: r.canceled, paths: r.filePaths }
   })
   handle('dialog.openFolder', async () => {
-    const r = await dialog.showOpenDialog(win!, { properties: ['openDirectory', 'multiSelections'] })
+    const r = await dialog.showOpenDialog({ properties: ['openDirectory', 'multiSelections'] })
     return { canceled: r.canceled, paths: r.filePaths }
   })
   handle('dialog.save', async (defaultName?: string) => {
-    const r = await dialog.showSaveDialog(win!, { defaultPath: defaultName })
+    const r = await dialog.showSaveDialog({ defaultPath: defaultName })
     return { canceled: r.canceled, path: r.filePath }
   })
 

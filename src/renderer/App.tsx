@@ -82,6 +82,7 @@ export default function App() {
       }
       if (e.event === 'add' || e.event === 'addDir' || e.event === 'unlink' || e.event === 'unlinkDir') {
         void refreshGitState()
+        store.bumpTreeVersion()
       }
     })
     return () => {

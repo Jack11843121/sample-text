@@ -46,12 +46,14 @@ function TreeRow({
 }) {
   const [expanded, setExpanded] = useState(depth === 0)
   const [children, setChildren] = useState<TreeNode[] | null>(null)
+  const treeVersion = useAppState().ui.treeVersion
 
   useEffect(() => {
-    if (expanded && node.isDirectory && children === null) {
+    if (expanded && node.isDirectory) {
       void api.readDir(node.path).then(setChildren).catch(() => setChildren([]))
     }
-  }, [expanded, node, children])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expanded, node.path, treeVersion])
 
   const isDir = node.isDirectory
   return (

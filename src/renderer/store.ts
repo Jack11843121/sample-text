@@ -66,6 +66,7 @@ export interface UiState {
   closedFiles: string[]
   macroRecording: boolean
   statusMessage: string | null
+  treeVersion: number
   previewScrollTo?: { path: string; line: number }
 }
 
@@ -160,7 +161,8 @@ export class AppStore {
         recentFiles: [],
         closedFiles: [],
         macroRecording: false,
-        statusMessage: null
+        statusMessage: null,
+        treeVersion: 0
       }
     }
   }
@@ -456,6 +458,10 @@ export class AppStore {
       this.state.ui = { ...this.state.ui, statusMessage: null }
       this.emit()
     }, timeoutMs)
+  }
+  bumpTreeVersion(): void {
+    this.state.ui = { ...this.state.ui, treeVersion: this.state.ui.treeVersion + 1 }
+    this.emit()
   }
   private _notifyTimer?: ReturnType<typeof setTimeout>
   setPreviewScrollTo(target?: { path: string; line: number }): void {

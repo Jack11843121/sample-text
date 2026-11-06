@@ -32,6 +32,7 @@ export default function App() {
   useEffect(() => {
     setKeybindings(DEFAULT_KEYBINDINGS)
     store.newUntitled()
+    document.documentElement.dataset.platform = window.sampleText.platform
     void api.settingsGet().then((user) => store.setUserSettings(user))
 
     const mq = window.matchMedia('(prefers-color-scheme: dark)')

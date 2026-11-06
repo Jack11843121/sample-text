@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { store, useAppState } from '../store'
 import { openFile, openFolder } from '../io'
+import { isTextFile } from '../editor/languages'
 import type { TreeNode } from '@shared/types'
 
 const api = window.sampleText
@@ -73,9 +74,11 @@ function TreeRow({
       </div>
       {expanded && isDir && children && (
         <div>
-          {children.map((c) => (
-            <TreeRow key={c.path} node={c} depth={depth + 1} gitStatus={gitStatus} />
-          ))}
+          {children
+            .filter((c) => c.isDirectory || isTextFile(c.path))
+            .map((c) => (
+              <TreeRow key={c.path} node={c} depth={depth + 1} gitStatus={gitStatus} />
+            ))}
         </div>
       )}
     </>

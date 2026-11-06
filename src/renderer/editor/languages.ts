@@ -101,6 +101,16 @@ export function languageForExtension(ext: string): string {
   return EXT_TO_LANG[clean] ?? 'plaintext'
 }
 
+/** 判断是否可当作文本打开的文件（用于目录树过滤：隐藏图片/二进制等） */
+export function isTextFile(path: string): boolean {
+  const slash = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'))
+  const base = path.slice(slash + 1)
+  const dot = base.lastIndexOf('.')
+  if (dot < 0) return true // 无扩展名（Makefile/README/LICENSE 等）按文本处理
+  const ext = base.slice(dot + 1).toLowerCase()
+  return EXT_TO_LANG[ext] !== undefined
+}
+
 let registered = false
 export function ensureLanguages(): void {
   if (registered) return

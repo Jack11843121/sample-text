@@ -1,8 +1,16 @@
 import { app, BrowserWindow, Menu, shell, session } from 'electron'
 import { join } from 'path'
+import { tmpdir } from 'os'
 import { registerIpc } from './ipc'
 import { buildMenu } from './menu'
 import { IPC } from '../shared/types'
+
+const HEADLESS = process.env.SAMPLE_TEXT_HEADLESS === '1'
+
+// 无头自检：把 userData 切到可写临时目录（绕过沙箱对 ~/Library 的写限制）
+if (HEADLESS) {
+  app.setPath('userData', join(tmpdir(), 'sample-text-headless'))
+}
 
 // 单实例锁：CLI 二次调用时聚焦已有窗口
 const gotLock = app.requestSingleInstanceLock()
@@ -42,6 +50,10 @@ if (!gotLock) {
     mainWindow = createMainWindow()
     registerIpc(mainWindow)
     Menu.setApplicationMenu(buildMenu(mainWindow))
+
+    if (HEADLESS) {
+      void runHeadlessSelfCheck(mainWindow)
+    }
 
     const initial = [...parseOpenPaths(process.argv), ...pendingOpenPaths]
     if (initial.length > 0) {
@@ -84,7 +96,15 @@ function createMainWindow(): BrowserWindow {
     }
   })
 
-  win.once('ready-to-show', () => win.show())
+  win.once('ready-to-show', () => {
+    if (!HEADLESS) win.show()
+  })
+
+  if (HEADLESS) {
+    win.webContents.on('console-message', (_e, level, message, line, sourceId) => {
+      if (level >= 3) console.log('[renderer:error]', message, '@' + line, sourceId)
+    })
+  }
 
   // 阻止页面导航，保持安全边界
   win.webContents.on('will-navigate', (e, url) => {
@@ -101,6 +121,32 @@ function createMainWindow(): BrowserWindow {
     void win.loadFile(join(__dirname, '../renderer/index.html'))
   }
   return win
+}
+
+/** 无头自检：验证 preload/渲染层挂载与 IPC 往返（CI / 排障用） */
+async function runHeadlessSelfCheck(win: BrowserWindow): Promise<void> {
+  win.webContents.once('did-finish-load', async () => {
+    await new Promise((r) => setTimeout(r, 2500))
+    const results: Record<string, unknown> = {}
+    const ck = async (name: string, expr: string) => {
+      try {
+        results[name] = await win.webContents.executeJavaScript(expr, true)
+      } catch (e) {
+        results[name] = 'ERR:' + String((e as Error).message)
+      }
+    }
+    await ck('api', 'typeof window.sampleText')
+    await ck('rootChildren', 'document.getElementById("root") ? document.getElementById("root").children.length : -1')
+    await ck('settingsGet', 'window.sampleText.settingsGet().then(()=>"resolve").catch(e=>"REJECT:"+e.message)')
+    await ck('listPackages', 'window.sampleText.listPackages().then(r=>"resolve:"+r.length).catch(e=>"REJECT:"+e.message)')
+    await ck('readFile', 'window.sampleText.readFile("/etc/hosts").then(r=>"resolve:"+r.content.length).catch(e=>"REJECT:"+e.message)')
+    await ck('stat', 'window.sampleText.stat("/etc/hosts").then(r=>"resolve:"+r.exists).catch(e=>"REJECT:"+e.message)')
+    await ck('openDialog', 'Promise.race([window.sampleText.openDialog().then(r=>"resolve:"+r.canceled+":"+(r.paths||[]).length).catch(e=>"REJECT:"+e.message), new Promise(res=>setTimeout(()=>res("TIMEOUT"),4000))])')
+    await ck('openFolderDialog', 'Promise.race([window.sampleText.openFolderDialog().then(r=>"resolve:"+r.canceled).catch(e=>"REJECT:"+e.message), new Promise(res=>setTimeout(()=>res("TIMEOUT"),4000))])')
+    console.log('SELFTEST=' + JSON.stringify(results))
+    app.quit()
+    setTimeout(() => app.exit(0), 3000)
+  })
 }
 
 /** 解析命令行中要打开的路径（过滤掉 electron 及 app 自身参数） */

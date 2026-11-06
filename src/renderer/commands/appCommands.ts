@@ -36,12 +36,20 @@ reg({ command: 'new_file', title: 'New File', category: 'File' }, () => {
   store.newUntitled()
 })
 reg({ command: 'open_file_dialog', title: 'Open File…', category: 'File' }, async () => {
-  const r = await api.openDialog()
-  for (const p of r.paths) await openFile(p)
+  try {
+    const r = await api.openDialog()
+    for (const p of r.paths) await openFile(p)
+  } catch (e) {
+    store.notify('打开文件失败：' + String((e as Error)?.message ?? e), 5000)
+  }
 })
 reg({ command: 'open_folder_dialog', title: 'Open Folder…', category: 'File' }, async () => {
-  const r = await api.openFolderDialog()
-  if (r.paths.length > 0) await openFolder(r.paths[0])
+  try {
+    const r = await api.openFolderDialog()
+    if (r.paths.length > 0) await openFolder(r.paths[0])
+  } catch (e) {
+    store.notify('打开文件夹失败：' + String((e as Error)?.message ?? e), 5000)
+  }
 })
 reg({ command: 'save', title: 'Save', category: 'File' }, async () => {
   await saveActive()

@@ -17,15 +17,21 @@ function baseName(path: string): string {
 }
 
 function pickFolder(): void {
-  void api.openFolderDialog().then((r) => {
-    if (r.paths[0]) void openFolder(r.paths[0])
-  })
+  api
+    .openFolderDialog()
+    .then((r) => {
+      if (r.paths[0]) void openFolder(r.paths[0])
+    })
+    .catch((e) => store.notify('打开文件夹失败：' + String(e?.message ?? e), 5000))
 }
 
 function pickFile(): void {
-  void api.openDialog().then((r) => {
-    if (r.paths[0]) void openFile(r.paths[0])
-  })
+  api
+    .openDialog()
+    .then((r) => {
+      if (r.paths[0]) void openFile(r.paths[0])
+    })
+    .catch((e) => store.notify('打开文件失败：' + String(e?.message ?? e), 5000))
 }
 
 function TreeRow({

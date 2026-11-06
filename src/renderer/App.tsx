@@ -55,11 +55,11 @@ export default function App() {
     if (state.activePath) emitPluginEvent('view.activated', { path: state.activePath })
   }, [state.activePath])
 
-  // 会话持久化：打开文件集合 / 活动文件变化时（防抖 600ms）保存
+  // 会话持久化：文件夹 / 打开文件集合 / 活动文件变化时（防抖 600ms）保存
   useEffect(() => {
     const t = setTimeout(() => persistWorkspace(), 600)
     return () => clearTimeout(t)
-  }, [state.tabOrder, state.activePath])
+  }, [state.folderPaths, state.tabOrder, state.activePath])
 
   // IPC 事件
   useEffect(() => {

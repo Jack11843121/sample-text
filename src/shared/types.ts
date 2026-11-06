@@ -80,8 +80,9 @@ export interface LineDiff {
   deleted: number[]
 }
 
-/** 工作区（会话）状态：上次打开的文件与活动文件 */
+/** 工作区（会话）状态：上次打开的文件夹、文件与活动文件 */
 export interface WorkspaceState {
+  folders: string[]
   openFiles: string[]
   activeFile: string | null
 }

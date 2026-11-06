@@ -12,11 +12,12 @@ export async function readWorkspace(): Promise<WorkspaceState> {
     const raw = await fs.readFile(workspacePath(), 'utf8')
     const obj = JSON.parse(raw) as Partial<WorkspaceState>
     return {
+      folders: Array.isArray(obj.folders) ? obj.folders : [],
       openFiles: Array.isArray(obj.openFiles) ? obj.openFiles : [],
       activeFile: typeof obj.activeFile === 'string' ? obj.activeFile : null
     }
   } catch {
-    return { openFiles: [], activeFile: null }
+    return { folders: [], openFiles: [], activeFile: null }
   }
 }
 

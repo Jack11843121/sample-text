@@ -88,17 +88,28 @@ export async function loadProjectFile(path: string): Promise<void> {
   }
 }
 
-/** 持久化当前打开的会话（文件列表 + 活动文件） */
+/** 持久化当前打开的会话（文件夹 + 文件列表 + 活动文件） */
 export function persistWorkspace(): void {
   const state = store.getState()
+  const folders = state.folderPaths
   const openFiles = state.tabOrder.filter((p) => !p.startsWith('untitled://'))
   const activeFile = state.activePath && !state.activePath.startsWith('untitled://') ? state.activePath : null
-  void api.saveWorkspace({ openFiles, activeFile })
+  void api.saveWorkspace({ folders, openFiles, activeFile })
 }
 
 /** 启动时恢复上次打开的会话 */
 export async function restoreWorkspace(): Promise<void> {
   const ws = await api.loadWorkspace()
+  // 恢复打开的文件夹目录
+  const folders = ws.folders ?? []
+  for (const f of folders) {
+    try {
+      await openFolder(f)
+    } catch {
+      // 目录已不存在则跳过
+    }
+  }
+  // 恢复打开的文件
   for (const p of ws.openFiles) {
     try {
       await openFile(p)

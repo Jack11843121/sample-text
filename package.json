@@ -1,7 +1,7 @@
 {
   "name": "sample-text",
   "productName": "sample-text",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "轻量、跨平台的文本处理与代码编辑工具，MIT 许可",
   "main": "./out/main/index.js",
   "author": "sample-text Contributors",

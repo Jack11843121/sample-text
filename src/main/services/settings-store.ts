@@ -4,11 +4,11 @@ import { join, dirname } from 'path'
 import type { SettingsDict } from '@shared/types'
 
 function userSettingsPath(): string {
-  return join(app.getPath('userData'), 'sample-text', 'Preferences.sublime-settings')
+  return join(app.getPath('userData'), 'sample-text', 'settings.json')
 }
 
 function userKeymapPath(): string {
-  return join(app.getPath('userData'), 'sample-text', 'Default.sublime-keymap')
+  return join(app.getPath('userData'), 'sample-text', 'keymap.json')
 }
 
 export function getUserSettingsPath(): string {

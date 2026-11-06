@@ -110,7 +110,7 @@ export const DEFAULT_SETTINGS: SettingsDict = {
   ruler: [],
   color_scheme_light: 'sample-text-light',
   color_scheme_dark: 'sample-text-dark',
-  theme: 'sample-text.sublime-theme',
+  theme: 'sample-text-theme',
   show_tabs: true,
   show_status_bar: true,
   ensure_newline_at_eof_on_save: true,

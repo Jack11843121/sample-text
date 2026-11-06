@@ -204,7 +204,7 @@ export function buildMenu(_win: BrowserWindow): Menu {
       label: 'Help',
       role: 'help',
       submenu: [
-        { label: 'sample-text 文档', click: () => void require('electron').shell.openExternal('https://www.sublimetext.com/docs/') },
+        { label: 'sample-text 文档', click: () => void require('electron').shell.openExternal('https://github.com/Jack11843121/sample-text') },
         { type: 'separator' },
         { role: 'toggleDevTools', label: 'Toggle Developer Tools' }
       ]

@@ -67,6 +67,7 @@ export interface UiState {
   macroRecording: boolean
   statusMessage: string | null
   treeVersion: number
+  aiChatOpen: boolean
   previewScrollTo?: { path: string; line: number }
 }
 
@@ -122,7 +123,17 @@ export const DEFAULT_SETTINGS: SettingsDict = {
   highlight_updated_tags: false,
   show_definitions: true,
   scroll_past_end: true,
-  spell_check: false
+  spell_check: false,
+  ai: {
+    provider: 'openai-compatible',
+    baseURL: 'https://api.deepseek.com/v1',
+    apiKey: '',
+    chatModel: 'deepseek-chat',
+    completionModel: 'deepseek-chat',
+    temperature: 0.7,
+    maxTokens: 2048,
+    enabled: true
+  }
 }
 
 let untitledCounter = 0
@@ -162,7 +173,8 @@ export class AppStore {
         closedFiles: [],
         macroRecording: false,
         statusMessage: null,
-        treeVersion: 0
+        treeVersion: 0,
+        aiChatOpen: false
       }
     }
   }
@@ -447,6 +459,14 @@ export class AppStore {
   }
   setMacroRecording(on: boolean): void {
     this.state.ui = { ...this.state.ui, macroRecording: on }
+    this.emit()
+  }
+  setAiChatOpen(open: boolean): void {
+    this.state.ui = { ...this.state.ui, aiChatOpen: open }
+    this.emit()
+  }
+  toggleAiChat(): void {
+    this.state.ui = { ...this.state.ui, aiChatOpen: !this.state.ui.aiChatOpen }
     this.emit()
   }
   notify(message: string, timeoutMs = 3000): void {

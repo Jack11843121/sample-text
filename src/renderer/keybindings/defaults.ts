@@ -110,5 +110,9 @@ export const DEFAULT_KEYBINDINGS: KeyBindingRule[] = [
   // 定义
   { keys: ['f12'], command: 'goto_definition' },
   { keys: ['shift+f12'], command: 'goto_reference' },
-  { keys: ['primary+f12'], command: 'goto_definition_fast' }
+  { keys: ['primary+f12'], command: 'goto_definition_fast' },
+
+  // AI
+  { keys: ['primary+alt+e'], command: 'ai_inline' },
+  { keys: ['primary+alt+l'], command: 'show_ai_chat' }
 ]

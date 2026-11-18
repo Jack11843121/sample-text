@@ -189,6 +189,8 @@ async function runHeadlessSelfCheck(win: BrowserWindow): Promise<void> {
     }
     await new Promise((r) => setTimeout(r, 2500))
     await ck('watchEvents', `JSON.stringify((window.__fsEvents||[]).map(e=>e.event+':'+String(e.path||'').split('/').pop()))`)
+    // AI IPC 冒烟：无 key 时应优雅返回「未配置」而非崩溃
+    await ck('aiComplete', `window.sampleText.aiComplete({prompt:"hi"}).then(r=>"resolve:"+(r.text||"").length).catch(e=>"REJECT:"+e.message)`)
     console.log('SELFTEST=' + JSON.stringify(results))
     app.quit()
     setTimeout(() => app.exit(0), 3000)

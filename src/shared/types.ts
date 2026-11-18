@@ -87,6 +87,24 @@ export interface WorkspaceState {
   activeFile: string | null
 }
 
+/** AI 会话消息 */
+export interface AiMessage {
+  role: 'system' | 'user' | 'assistant'
+  content: string
+}
+
+/** 内联补全 / 单次生成请求 */
+export interface AiCompleteArgs {
+  prompt: string
+  model?: string
+  temperature?: number
+  maxTokens?: number
+}
+
+export interface AiCompleteResult {
+  text: string
+}
+
 export interface BuildResultMatch {
   file?: string
   line?: number
@@ -276,6 +294,11 @@ export interface SampleTextApi {
   loadWorkspace(): Promise<WorkspaceState>
   saveWorkspace(ws: WorkspaceState): Promise<void>
 
+  // AI
+  aiChat(reqId: string, messages: AiMessage[]): Promise<void>
+  aiCancel(reqId: string): Promise<void>
+  aiComplete(args: AiCompleteArgs): Promise<AiCompleteResult>
+
   // 应用
   appSetTitle(title: string): Promise<void>
   appSetDocumentEdited(edited: boolean): Promise<void>
@@ -307,7 +330,11 @@ export const IPC = {
   /** 主题系统颜色变化 */
   NATIVE_THEME_CHANGED: 'native-theme-changed',
   /** 自动更新状态 */
-  UPDATE_STATE: 'update:state'
+  UPDATE_STATE: 'update:state',
+  /** AI 流式 */
+  AI_STREAM: 'ai:stream',
+  AI_DONE: 'ai:done',
+  AI_ERROR: 'ai:error'
 } as const
 
 export type IpcResponse<T> = { ok: true; data: T } | { ok: false; error: string }

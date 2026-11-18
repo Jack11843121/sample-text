@@ -7,6 +7,9 @@ import { StatusBar } from './components/StatusBar'
 import { CommandPalette } from './components/CommandPalette'
 import { BuildPanel } from './components/BuildPanel'
 import { FindInFiles } from './components/FindInFiles'
+import { AiInlineModal } from './components/AiInlineModal'
+import { AiChatPanel } from './components/AiChatPanel'
+import './features/ai'
 import { openFile, reloadFile, refreshGitState, restoreWorkspace, persistWorkspace } from './io'
 import { refreshGitGutter } from './features/gitGutter'
 import { refreshBookmarks } from './features/bookmarks'
@@ -140,6 +143,8 @@ export default function App() {
       <FindInFiles />
       <StatusBar />
       <CommandPalette />
+      <AiInlineModal />
+      <AiChatPanel />
     </div>
   )
 }

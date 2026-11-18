@@ -6,7 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Windows-blue)](#下载安装)
-[![Version](https://img.shields.io/badge/Version-0.1.11-informational)](package.json)
+[![Version](https://img.shields.io/badge/Version-0.2.0-informational)](package.json)
 [![Node](https://img.shields.io/badge/Node-%E2%89%A520-339933)]()
 [![Electron](https://img.shields.io/badge/Electron-33-47848f)]()
 
@@ -114,6 +114,16 @@
 - ✅ **会话记忆**：记住上次打开的文件夹与文件，重启自动恢复。
 - ✅ **自动更新 / 包管理 / 拼写检查开关**。
 
+### AI 能力（AI 文本助手）
+
+- ✅ **选中即改写**：`⌘⌥E` 打开 AI 浮条，一键改写 / 翻译 / 解释 / 总结 / 修复 / 生成测试，支持自定义指令，结果原位替换选区。
+- ✅ **内联补全**：随打字预测续写（ghost text），`Tab` 接受。
+- ✅ **AI 聊天面板**：`⌘⌥L` 打开多轮流式对话，可讨论代码 / 文本。
+- ✅ **模型后端可配**：OpenAI 兼容（默认 DeepSeek）+ 本地 Ollama，一套抽象覆盖在线与本地。
+
+> 配置：在 `settings.json` 中设置 `ai.*`（`apiKey`、`baseURL`、`chatModel`、`temperature` 等）。
+> 默认 `baseURL=https://api.deepseek.com/v1`、`chatModel=deepseek-chat`；填好 `ai.apiKey` 即可用。
+
 ---
 
 ## 支持的语言与文件类型
@@ -139,8 +149,8 @@ Objective-C、Pascal、VB、Bat / Cmd、PowerShell、GraphQL、Dockerfile、ini 
 
 | 平台 | 安装包 | 安装方式 |
 |---|---|---|
-| macOS（Apple Silicon） | `sample-text-0.1.11-mac-arm64.zip` | 解压后把 `sample-text.app` 拖入「应用程序」，首次打开需 **右键 → 打开** |
-| Windows（x64） | `sample-text-0.1.11-win-x64.zip` | 解压后双击 `sample-text.exe`，SmartScreen 提示点「更多信息 → 仍要运行」 |
+| macOS（Apple Silicon） | `sample-text-0.2.0-mac-arm64.zip` | 解压后把 `sample-text.app` 拖入「应用程序」，首次打开需 **右键 → 打开** |
+| Windows（x64） | `sample-text-0.2.0-win-x64.zip` | 解压后双击 `sample-text.exe`，SmartScreen 提示点「更多信息 → 仍要运行」 |
 
 > 想要 `.dmg` / `.exe` 安装器？见下方「生成正式安装包」。
 

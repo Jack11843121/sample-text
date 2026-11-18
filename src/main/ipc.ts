@@ -19,7 +19,8 @@ import { findInFiles } from './services/search'
 import { getPackageRoots, scanResources, listPackages, fetchChannel, installPackage, removePackage } from './services/packages'
 import { initAutoUpdater, checkForUpdates, quitAndInstall } from './services/updater'
 import { readWorkspace, writeWorkspace } from './services/workspace'
-import { IPC, type BuildResult, type BuildSystem, type SettingsDict, type GitState, type SearchOptions, type WorkspaceState } from '@shared/types'
+import { startChat, cancelChat, complete } from './services/ai'
+import { IPC, type BuildResult, type BuildSystem, type SettingsDict, type GitState, type SearchOptions, type WorkspaceState, type AiMessage, type AiCompleteArgs } from '@shared/types'
 import type { FSWatcher } from 'chokidar'
 
 let win: BrowserWindow | null = null
@@ -125,6 +126,28 @@ export function registerIpc(window: BrowserWindow): void {
   // ---- 自动更新 ----
   handle('update.check', () => checkForUpdates())
   handle('update.quitAndInstall', () => quitAndInstall())
+
+  // ---- AI ----
+  handle('ai.chat', async (payload: { reqId: string; messages: AiMessage[] }) => {
+    startChat(
+      payload.reqId,
+      payload.messages,
+      (delta) => send(IPC.AI_STREAM, { reqId: payload.reqId, delta }),
+      (text) => send(IPC.AI_DONE, { reqId: payload.reqId, text }),
+      (message) => send(IPC.AI_ERROR, { reqId: payload.reqId, message })
+    )
+  })
+  handle('ai.cancel', (reqId: string) => {
+    cancelChat(reqId)
+  })
+  handle('ai.complete', async (args: AiCompleteArgs) => {
+    const text = await complete(args.prompt, {
+      model: args.model,
+      temperature: args.temperature,
+      maxTokens: args.maxTokens
+    })
+    return { text }
+  })
 
   // ---- 设置 ----
   handle('settings.get', (): Promise<SettingsDict> => readUserSettings())

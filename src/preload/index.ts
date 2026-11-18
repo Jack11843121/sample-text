@@ -1,5 +1,8 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type {
+  AiCompleteArgs,
+  AiCompleteResult,
+  AiMessage,
   BuildSystem,
   ContextMenuEntry,
   Encoding,
@@ -64,6 +67,10 @@ const api: SampleTextApi = {
 
   loadWorkspace: () => invoke<WorkspaceState>('workspace.load'),
   saveWorkspace: (ws: WorkspaceState) => invoke<void>('workspace.save', ws),
+
+  aiChat: (reqId: string, messages: AiMessage[]) => invoke<void>('ai.chat', { reqId, messages }),
+  aiCancel: (reqId: string) => invoke<void>('ai.cancel', reqId),
+  aiComplete: (args: AiCompleteArgs) => invoke<AiCompleteResult>('ai.complete', args),
   watchProjectPaths: (paths: string[]) => invoke<void>('project.watch', paths),
 
   scanPackageResources: (kinds: string[]) => invoke<PackagedResource[]>('packages.scan', kinds),

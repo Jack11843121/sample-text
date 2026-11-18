@@ -320,7 +320,17 @@ export function sendChat(text: string): void {
   notifyChat()
 
   const path = getFocusedPath()
-  const ctx = path ? `（当前文件：${path}）` : ''
+  const editor = getFocusedEditor()
+  const model = getFocusedModel()
+  let ctx = ''
+  if (path) ctx += '\n当前文件：' + path
+  if (model) ctx += '\n语言：' + (model.getLanguageId() || 'plaintext')
+  if (editor && model) {
+    const sel = editor.getSelection()
+    if (sel && !sel.isEmpty()) {
+      ctx += '\n当前选中内容：\n```\n' + model.getValueInRange(sel).slice(0, 3000) + '\n```'
+    }
+  }
   const sys = '你是运行在本地编辑器里的 AI 文本/代码助手，回答简洁、准确、有条理。' + ctx
   streamChat(
     [

@@ -155,26 +155,41 @@ reg({ command: 'focus_group_1', title: 'Focus Pane 2', category: 'View' }, () =>
 // ---------------------------------------------------------------------------
 // 设置 / 首选项
 // ---------------------------------------------------------------------------
+async function openOrCreate(path: string, template: string): Promise<void> {
+  if (!(await api.exists(path))) {
+    await api.writeFile(path, template)
+  }
+  await openFile(path)
+}
+
 reg({ command: 'open_user_settings', title: 'Preferences: Settings', category: 'Preferences' }, async () => {
   const p = await api.userSettingsPath()
-  await openFile(p)
+  await openOrCreate(
+    p,
+    '{\n\t// 用户设置（覆盖默认值）。示例：\n\t// "ai": { "apiKey": "sk-xxx", "baseURL": "https://api.deepseek.com/v1", "chatModel": "deepseek-chat" },\n\t// "font_size": 14,\n\t// "word_wrap": true\n}\n'
+  )
 })
 reg({ command: 'open_user_keymap', title: 'Preferences: Key Bindings', category: 'Preferences' }, async () => {
   const p = await api.userKeymapPath()
-  await openFile(p)
+  await openOrCreate(
+    p,
+    '[\n\t// 自定义键位。示例：\n\t// { "keys": ["ctrl+alt+t"], "command": "show_ai_chat" },\n\t// { "keys": ["primary+alt+e"], "command": "ai_inline" }\n]\n'
+  )
 })
 reg({ command: 'open_project_settings', title: 'Project: Edit Settings', category: 'Project' }, async () => {
-  // 项目设置写入 .sublime-project 的 settings 段；此处打开项目文件
   const projPath = store.getState().projectData?.__projectPath
-  if (projPath) await openFile(projPath)
+  if (projPath) {
+    await openOrCreate(projPath, '{\n\t"folders": [\n\t\t{ "path": "." }\n\t],\n\t"settings": {}\n}\n')
+  } else {
+    store.notify('未打开项目：请先「打开文件夹」', 4000)
+  }
 })
 reg({ command: 'open_syntax_settings', title: 'Preferences: Syntax Specific', category: 'Preferences' }, async () => {
-  const path = getFocusedPath()
-  if (path) {
-    const ext = path.includes('.') ? path.split('.').pop() : 'txt'
-    // 打开语言特异设置（虚拟）
-    store.newUntitled()
-  }
+  const model = getFocusedEditor()?.getModel()
+  const lang = model ? model.getLanguageId() : 'plaintext'
+  const settingsPath = await api.userSettingsPath()
+  const dir = settingsPath.replace(/[^/\\]+$/, '')
+  await openOrCreate(dir + 'syntax-' + lang + '.json', '{\n\t// ' + lang + ' 专属设置（覆盖通用）。示例：\n\t// "tab_size": 2\n}\n')
 })
 reg({ command: 'reload_settings', title: 'Preferences: Reload Settings', category: 'Preferences' }, async () => {
   const user = await api.settingsGet()
@@ -359,6 +374,35 @@ reg({ command: 'show_in_folder', title: 'Show in Finder/Explorer', category: 'Fi
 })
 reg({ command: 'refresh_project', title: 'Refresh Folders', category: 'Project' }, async () => {
   await refreshGitState()
+})
+reg({ command: 'add_folder_to_project', title: 'Project: Add Folder…', category: 'Project' }, async () => {
+  const r = await api.openFolderDialog()
+  if (r.paths.length > 0) await openFolder(r.paths[0])
+})
+reg({ command: 'open_project_dialog', title: 'Project: Open…', category: 'Project' }, async () => {
+  const r = await api.openDialog()
+  for (const p of r.paths) {
+    if (p.endsWith('.sublime-project')) await loadProjectFile(p)
+    else {
+      const st = await api.stat(p)
+      if (st.isDirectory) await openFolder(p)
+    }
+  }
+})
+reg({ command: 'save_project_as', title: 'Project: Save As…', category: 'Project' }, async () => {
+  const folders = store.getState().folderPaths
+  if (folders.length === 0) {
+    store.notify('未打开文件夹，无法保存项目', 4000)
+    return
+  }
+  const r = await api.saveDialog('project.sublime-project')
+  if (r.canceled || !r.path) return
+  await api.writeFile(r.path, JSON.stringify({ folders: folders.map((f) => ({ path: f })), settings: {} }, null, 2) + '\n')
+  store.notify('已保存项目')
+})
+reg({ command: 'show_project_switcher', title: 'Project: Switch…', category: 'Project' }, async () => {
+  const r = await api.openFolderDialog()
+  if (r.paths.length > 0) await openFolder(r.paths[0])
 })
 
 // ---- 构建系统查找 ----

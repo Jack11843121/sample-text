@@ -46,6 +46,7 @@ export function ensureModel(path: string): monaco.editor.ITextModel {
     model.onDidChangeContent(() => {
       const value = model!.getValue()
       store.setValue(path, value)
+      recordEditPoint()
     })
     models.set(path, model)
   }
@@ -196,6 +197,44 @@ export function revealLineInEditor(line: number): void {
   editor.revealLineInCenter(line)
   editor.setPosition({ lineNumber: line, column: 1 })
   editor.focus()
+}
+
+// ---------------------------------------------------------------------------
+// 编辑点历史（Next/Prev Edit Point）
+// ---------------------------------------------------------------------------
+const editPoints: { line: number; col: number }[] = []
+let editPointIndex = -1
+
+function recordEditPoint(): void {
+  const e = focusedEditor
+  if (!e) return
+  const p = e.getPosition()
+  if (!p) return
+  const last = editPoints[editPoints.length - 1]
+  if (last && last.line === p.lineNumber && last.col === p.column) return
+  editPoints.push({ line: p.lineNumber, col: p.column })
+  if (editPoints.length > 50) editPoints.shift()
+  editPointIndex = editPoints.length - 1
+}
+
+export function nextEditPoint(): void {
+  const e = focusedEditor
+  if (!e || editPoints.length === 0) return
+  editPointIndex = Math.min(editPoints.length - 1, editPointIndex + 1)
+  const p = editPoints[editPointIndex]
+  e.setPosition({ lineNumber: p.line, column: p.col })
+  e.revealPositionInCenter({ lineNumber: p.line, column: p.col })
+  e.focus()
+}
+
+export function prevEditPoint(): void {
+  const e = focusedEditor
+  if (!e || editPoints.length === 0) return
+  editPointIndex = Math.max(0, editPointIndex - 1)
+  const p = editPoints[editPointIndex]
+  e.setPosition({ lineNumber: p.line, column: p.col })
+  e.revealPositionInCenter({ lineNumber: p.line, column: p.col })
+  e.focus()
 }
 
 /** 更新编辑器的语言（打开/设置变化时） */

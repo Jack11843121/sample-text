@@ -99,8 +99,9 @@ select {
   font-family: inherit;
 }
 
+/* 编辑器背景交给 Monaco 主题（.tmTheme/.sublime-color-scheme）自身控制 */
 .monaco-editor,
 .monaco-editor .margin,
 .monaco-editor-background {
-  background-color: var(--bg) !important;
+  background-color: transparent;
 }

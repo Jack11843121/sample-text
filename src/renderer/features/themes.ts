@@ -184,10 +184,10 @@ function isDarkColor(hex: string): boolean {
 }
 
 export function applyScheme(name: string): void {
-  store.setActiveColorScheme(name)
-  monaco.editor.setTheme(name)
   const scheme = schemeList.find((s) => s.name === name)
-  document.documentElement.dataset.theme = scheme?.isDark !== false ? 'dark' : 'light'
+  store.setActiveColorScheme(name)
+  // 深浅由 chrome/编辑器统一在 App 主题 effect 里应用，避免编辑器与 UI 各自为战
+  store.setThemeBase(scheme?.isDark !== false ? 'dark' : 'light')
 }
 
 let schemeList: { name: string; isDark?: boolean }[] = []

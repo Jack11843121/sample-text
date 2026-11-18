@@ -14,6 +14,8 @@ import { openFile, reloadFile, refreshGitState, restoreWorkspace, persistWorkspa
 import { refreshGitGutter } from './features/gitGutter'
 import { refreshBookmarks } from './features/bookmarks'
 import { emitPluginEvent } from './plugins/host'
+import * as monaco from 'monaco-editor'
+import { applyEditorOptions, forEachEditor } from './editor/session'
 import { runCommand } from './commands/registry'
 import { setKeybindings } from './keybindings/loader'
 import { DEFAULT_KEYBINDINGS } from './keybindings/defaults'
@@ -47,7 +49,10 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.dataset.theme = state.themeBase
-  }, [state.themeBase])
+    const scheme = state.activeColorScheme || 'sample-text-dark'
+    monaco.editor.setTheme(scheme)
+    forEachEditor((e) => applyEditorOptions(e))
+  }, [state.themeBase, state.activeColorScheme])
 
   useEffect(() => {
     void refreshGitGutter(state.activePath)

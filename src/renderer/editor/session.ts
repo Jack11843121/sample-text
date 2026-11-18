@@ -78,7 +78,7 @@ export function editorOptions(): monaco.editor.IStandaloneEditorConstructionOpti
   const s = store.getState().settings
   const ui = store.getState().ui
   return {
-    theme: editorTheme(store.getState().themeBase),
+    theme: store.getState().activeColorScheme || editorTheme(store.getState().themeBase),
     fontSize: typeof s.font_size === 'number' ? s.font_size : 13,
     fontFamily: typeof s.font_face === 'string' && s.font_face !== 'monospace' ? s.font_face : undefined,
     minimap: { enabled: ui.showMinimap && s.minimap_enabled !== false },

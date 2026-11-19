@@ -44,6 +44,19 @@ export function cancelChat(reqId: string): void {
   pending.delete(reqId)
 }
 
+async function fetchWithTimeout(input: string, init: RequestInit, ms: number): Promise<Response> {
+  const ctrl = new AbortController()
+  const t = setTimeout(() => ctrl.abort(), ms)
+  try {
+    return await fetch(input, { ...init, signal: ctrl.signal })
+  } catch (e) {
+    if ((e as Error)?.name === 'AbortError') throw new Error('请求超时（' + Math.round(ms / 1000) + 's），请检查 ai.baseURL 与网络')
+    throw e
+  } finally {
+    clearTimeout(t)
+  }
+}
+
 /** OpenAI 兼容 /v1/chat/completions（DeepSeek 等） SSE 流式 */
 async function streamOpenAI(
   cfg: AiConfig,
@@ -158,6 +171,8 @@ export function startChat(
 ): void {
   const ac = new AbortController()
   pending.set(reqId, ac)
+  // 总超时 120s：第三方接口连不上/无响应时，给用户明确报错而非一直「正在生成」
+  const guard = setTimeout(() => ac.abort(), 120_000)
   void (async () => {
     try {
       const cfg = await getAiConfig()
@@ -166,8 +181,10 @@ export function startChat(
       const full = await stream(cfg, messages, onDelta, ac.signal)
       onDone(full)
     } catch (e) {
-      onError(String((e as Error)?.message ?? e))
+      const err = e as Error
+      onError(err?.name === 'AbortError' ? 'AI 请求超时或无响应，请检查 ai.baseURL 与网络连接' : String(err?.message ?? e))
     } finally {
+      clearTimeout(guard)
       pending.delete(reqId)
     }
   })()
@@ -180,32 +197,43 @@ export async function complete(prompt: string, args?: { model?: string; temperat
   const base = cfg.baseURL.replace(/\/+$/, '')
   const model = args?.model || cfg.completionModel
   if (cfg.provider === 'ollama') {
-    const res = await fetch(base + '/api/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model,
-        prompt,
-        stream: false,
-        options: { temperature: args?.temperature ?? cfg.temperature, num_predict: args?.maxTokens ?? cfg.maxTokens }
-      })
-    })
+    const res = await fetchWithTimeout(
+      base + '/api/generate',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model,
+          prompt,
+          stream: false,
+          options: { temperature: args?.temperature ?? cfg.temperature, num_predict: args?.maxTokens ?? cfg.maxTokens }
+        })
+      },
+      60_000
+    )
     if (!res.ok) throw new Error('Ollama HTTP ' + res.status)
     const j = (await res.json()) as { response?: string }
     return j.response ?? ''
   }
-  const res = await fetch(base + '/chat/completions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + cfg.apiKey },
-    body: JSON.stringify({
-      model,
-      messages: [{ role: 'user', content: prompt }],
-      temperature: args?.temperature ?? cfg.temperature,
-      max_tokens: args?.maxTokens ?? cfg.maxTokens,
-      stream: false
-    })
-  })
-  if (!res.ok) throw new Error('HTTP ' + res.status)
+  const res = await fetchWithTimeout(
+    base + '/chat/completions',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + cfg.apiKey },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: args?.temperature ?? cfg.temperature,
+        max_tokens: args?.maxTokens ?? cfg.maxTokens,
+        stream: false
+      })
+    },
+    60_000
+  )
+  if (!res.ok) {
+    const t = await res.text().catch(() => '')
+    throw new Error('HTTP ' + res.status + (t ? ': ' + t.slice(0, 200) : ''))
+  }
   const j = (await res.json()) as { choices?: { message?: { content?: string } }[] }
   return j.choices?.[0]?.message?.content ?? ''
 }

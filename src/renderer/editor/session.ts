@@ -1,5 +1,6 @@
 import * as monaco from 'monaco-editor'
 import { store } from '../store'
+import { runCommand } from '../commands/registry'
 import { initMonaco, editorTheme } from './monacoSetup'
 import { ensureLanguages, languageForPath } from './languages'
 
@@ -135,8 +136,41 @@ export function createEditor(
   })
   editor.onDidChangeCursorPosition(() => notifyStatus())
   editor.onDidChangeModel(() => notifyStatus())
+  installAiContextMenu(editor)
   editors.set(groupId, editor)
   return editor
+}
+
+/** AI 右键菜单（有选区时显示） */
+function installAiContextMenu(editor: monaco.editor.IStandaloneCodeEditor): void {
+  const items: [string, string, string][] = [
+    ['ai.menu.rewrite', 'AI：改写所选', 'ai_rewrite'],
+    ['ai.menu.translate', 'AI：翻译所选', 'ai_translate'],
+    ['ai.menu.explain', 'AI：解释所选', 'ai_explain'],
+    ['ai.menu.summarize', 'AI：总结所选', 'ai_summarize'],
+    ['ai.menu.fix', 'AI：修复所选', 'ai_fix']
+  ]
+  items.forEach(([id, label, cmd], i) => {
+    editor.addAction({
+      id,
+      label,
+      contextMenuGroupId: 'ai',
+      contextMenuOrder: i + 1,
+      precondition: 'editorHasSelection',
+      run: () => {
+        runCommand(cmd)
+      }
+    })
+  })
+  editor.addAction({
+    id: 'ai.menu.inline',
+    label: 'AI：处理所选…',
+    contextMenuGroupId: 'ai',
+    contextMenuOrder: 10,
+    run: () => {
+      runCommand('ai_inline')
+    }
+  })
 }
 
 export function getEditor(groupId: string): monaco.editor.IStandaloneCodeEditor | null {

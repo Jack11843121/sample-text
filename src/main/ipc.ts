@@ -132,7 +132,7 @@ export function registerIpc(window: BrowserWindow): void {
     startChat(
       payload.reqId,
       payload.messages,
-      (delta) => send(IPC.AI_STREAM, { reqId: payload.reqId, delta }),
+      (delta, thinking) => send(IPC.AI_STREAM, { reqId: payload.reqId, delta, thinking }),
       (text) => send(IPC.AI_DONE, { reqId: payload.reqId, text }),
       (message) => send(IPC.AI_ERROR, { reqId: payload.reqId, message })
     )

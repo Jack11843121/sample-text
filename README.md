@@ -6,7 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Windows-blue)](#下载安装)
-[![Version](https://img.shields.io/badge/Version-0.2.3-informational)](package.json)
+[![Version](https://img.shields.io/badge/Version-0.2.4-informational)](package.json)
 [![Node](https://img.shields.io/badge/Node-%E2%89%A520-339933)]()
 [![Electron](https://img.shields.io/badge/Electron-33-47848f)]()
 
@@ -149,8 +149,8 @@ Objective-C、Pascal、VB、Bat / Cmd、PowerShell、GraphQL、Dockerfile、ini 
 
 | 平台 | 安装包 | 安装方式 |
 |---|---|---|
-| macOS（Apple Silicon） | `sample-text-0.2.3-mac-arm64.zip` | 解压后把 `sample-text.app` 拖入「应用程序」，首次打开需 **右键 → 打开** |
-| Windows（x64） | `sample-text-0.2.3-win-x64.zip` | 解压后双击 `sample-text.exe`，SmartScreen 提示点「更多信息 → 仍要运行」 |
+| macOS（Apple Silicon） | `sample-text-0.2.4-mac-arm64.zip` | 解压后把 `sample-text.app` 拖入「应用程序」，首次打开需 **右键 → 打开** |
+| Windows（x64） | `sample-text-0.2.4-win-x64.zip` | 解压后双击 `sample-text.exe`，SmartScreen 提示点「更多信息 → 仍要运行」 |
 
 > 想要 `.dmg` / `.exe` 安装器？见下方「生成正式安装包」。
 

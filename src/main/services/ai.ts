@@ -18,7 +18,7 @@ const DEFAULT_AI: AiConfig = {
   baseURL: 'https://api.deepseek.com/v1',
   apiKey: '',
   chatModel: 'deepseek-chat',
-  completionModel: 'deepseek-chat',
+  completionModel: '', // 空 = 复用 chatModel
   temperature: 0.7,
   maxTokens: 2048,
   enabled: true
@@ -61,7 +61,7 @@ async function fetchWithTimeout(input: string, init: RequestInit, ms: number): P
 async function streamOpenAI(
   cfg: AiConfig,
   messages: AiMessage[],
-  onDelta: (d: string) => void,
+  onDelta: (d: string, thinking: boolean) => void,
   signal: AbortSignal
 ): Promise<string> {
   const base = cfg.baseURL.replace(/\/+$/, '')
@@ -99,12 +99,15 @@ async function streamOpenAI(
       if (!data || data === '[DONE]') continue
       try {
         const j = JSON.parse(data) as {
-          choices?: { delta?: { content?: string }; message?: { content?: string } }[]
+          choices?: { delta?: { content?: string; reasoning_content?: string }; message?: { content?: string; reasoning_content?: string } }[]
         }
-        const delta = j.choices?.[0]?.delta?.content ?? j.choices?.[0]?.message?.content ?? ''
-        if (delta) {
-          full += delta
-          onDelta(delta)
+        const d = j.choices?.[0]?.delta ?? j.choices?.[0]?.message
+        const reasoning = d?.reasoning_content ?? ''
+        const content = d?.content ?? ''
+        if (reasoning) onDelta(reasoning, true) // 思考过程
+        if (content) {
+          full += content
+          onDelta(content, false) // 正文
         }
       } catch {
         /* 忽略不完整行 */
@@ -114,11 +117,11 @@ async function streamOpenAI(
   return full
 }
 
-/** Ollama /api/chat（ndjson 流式） */
+/** Ollama /api/chat（ndjson 流式；支持 thinking 字段） */
 async function streamOllama(
   cfg: AiConfig,
   messages: AiMessage[],
-  onDelta: (d: string) => void,
+  onDelta: (d: string, thinking: boolean) => void,
   signal: AbortSignal
 ): Promise<string> {
   const base = cfg.baseURL.replace(/\/+$/, '')
@@ -148,11 +151,13 @@ async function streamOllama(
     for (const line of lines) {
       if (!line.trim()) continue
       try {
-        const j = JSON.parse(line) as { message?: { content?: string } }
-        const delta = j.message?.content ?? ''
-        if (delta) {
-          full += delta
-          onDelta(delta)
+        const j = JSON.parse(line) as { message?: { content?: string; thinking?: string } }
+        const th = j.message?.thinking ?? ''
+        const ct = j.message?.content ?? ''
+        if (th) onDelta(th, true)
+        if (ct) {
+          full += ct
+          onDelta(ct, false)
         }
       } catch {
         /* ignore */
@@ -165,7 +170,7 @@ async function streamOllama(
 export function startChat(
   reqId: string,
   messages: AiMessage[],
-  onDelta: (d: string) => void,
+  onDelta: (d: string, thinking: boolean) => void,
   onDone: (text: string) => void,
   onError: (message: string) => void
 ): void {
@@ -195,7 +200,7 @@ export async function complete(prompt: string, args?: { model?: string; temperat
   const cfg = await getAiConfig()
   if (!isAiConfigured(cfg)) throw new Error('未配置 AI：请在设置 settings.json 中填写 ai.apiKey')
   const base = cfg.baseURL.replace(/\/+$/, '')
-  const model = args?.model || cfg.completionModel
+  const model = args?.model || cfg.completionModel || cfg.chatModel
   if (cfg.provider === 'ollama') {
     const res = await fetchWithTimeout(
       base + '/api/generate',

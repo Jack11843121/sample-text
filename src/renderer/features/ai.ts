@@ -52,6 +52,7 @@ export interface AiInlineState {
   customPrompt: string
   result: string
   busy: boolean
+  thinking: boolean
   error: string
 }
 const aiInline: AiInlineState = {
@@ -62,6 +63,7 @@ const aiInline: AiInlineState = {
   customPrompt: '',
   result: '',
   busy: false,
+  thinking: false,
   error: ''
 }
 const inlineListeners = new Set<() => void>()
@@ -103,14 +105,19 @@ function streamChat(
   messages: AiMessage[],
   onDelta: (full: string) => void,
   onDone: (full: string) => void,
-  onError: (msg: string) => void
+  onError: (msg: string) => void,
+  onThinking?: (delta: string) => void
 ): () => void {
   const reqId = 'ai-' + ++reqSeq + '-' + Date.now()
   let acc = ''
   let finished = false
   const offStream = api.on(IPC.AI_STREAM, (p) => {
-    const e = p as { reqId: string; delta: string }
+    const e = p as { reqId: string; delta: string; thinking?: boolean }
     if (e.reqId !== reqId) return
+    if (e.thinking) {
+      onThinking?.(e.delta)
+      return
+    }
     acc += e.delta
     onDelta(acc)
   })
@@ -209,6 +216,7 @@ export function openAiInline(actionKey?: string): void {
   aiInline.customPrompt = ''
   aiInline.result = ''
   aiInline.busy = false
+  aiInline.thinking = false
   aiInline.error = ''
   notifyInline()
   if (actionKey) runAiAction(actionKey)
@@ -218,6 +226,7 @@ export function closeAiInline(): void {
   aiInline.open = false
   aiInline.result = ''
   aiInline.busy = false
+  aiInline.thinking = false
   aiInline.error = ''
   notifyInline()
 }
@@ -244,6 +253,7 @@ export function runAiAction(actionKey: string): void {
   aiInline.result = ''
   aiInline.error = ''
   aiInline.busy = true
+  aiInline.thinking = false
   notifyInline()
   streamChat(
     [
@@ -251,17 +261,24 @@ export function runAiAction(actionKey: string): void {
       { role: 'user', content: p.user(text, lang) }
     ],
     (full) => {
+      aiInline.thinking = false
       aiInline.result = full
       notifyInline()
     },
     (full) => {
+      aiInline.thinking = false
       aiInline.result = full
       aiInline.busy = false
       notifyInline()
     },
     (msg) => {
+      aiInline.thinking = false
       aiInline.error = msg
       aiInline.busy = false
+      notifyInline()
+    },
+    () => {
+      aiInline.thinking = true
       notifyInline()
     }
   )
@@ -278,6 +295,7 @@ export function runAiCustomPrompt(): void {
   aiInline.result = ''
   aiInline.error = ''
   aiInline.busy = true
+  aiInline.thinking = false
   notifyInline()
   streamChat(
     [
@@ -285,17 +303,24 @@ export function runAiCustomPrompt(): void {
       { role: 'user', content: `指令：${prompt}\n\n文本：\n\`\`\`${lang}\n${text}\n\`\`\`` }
     ],
     (full) => {
+      aiInline.thinking = false
       aiInline.result = full
       notifyInline()
     },
     (full) => {
+      aiInline.thinking = false
       aiInline.result = full
       aiInline.busy = false
       notifyInline()
     },
     (msg) => {
+      aiInline.thinking = false
       aiInline.error = msg
       aiInline.busy = false
+      notifyInline()
+    },
+    () => {
+      aiInline.thinking = true
       notifyInline()
     }
   )

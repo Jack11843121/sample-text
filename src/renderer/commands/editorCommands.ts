@@ -1,6 +1,6 @@
 import * as monaco from 'monaco-editor'
 import { registerCommand, registerCommandMeta } from './registry'
-import { getFocusedEditor, getFocusedModel, nextEditPoint, prevEditPoint } from '../editor/session'
+import { getFocusedEditor, getFocusedModel, nextEditPoint, prevEditPoint, navigateBack, navigateForward } from '../editor/session'
 import { store } from '../store'
 import { nextBookmark, prevBookmark, toggleBookmark, selectAllBookmarks, clearBookmarks } from '../features/bookmarks'
 
@@ -168,6 +168,8 @@ reg('goto_definition_fast', () => action('editor.action.revealDefinition'), 'Got
 reg('goto_reference', () => action('editor.action.goToReferences'), 'Goto Reference', 'Navigation')
 reg('next_edit_point', () => nextEditPoint(), 'Next Edit Point', 'Navigation')
 reg('prev_edit_point', () => prevEditPoint(), 'Previous Edit Point', 'Navigation')
+reg('nav_back', () => navigateBack(), 'Go Back', 'Navigation')
+reg('nav_forward', () => navigateForward(), 'Go Forward', 'Navigation')
 reg('expand_selection_to_scope', () => action('editor.action.smartSelect.grow'), 'Expand Selection to Scope', 'Selection')
 reg('format_document', () => action('editor.action.formatDocument'), 'Format Document', 'Edit')
 reg('format_selection', () => action('editor.action.formatSelection'), 'Format Selection', 'Edit')

@@ -83,8 +83,9 @@ export const DEFAULT_KEYBINDINGS: KeyBindingRule[] = [
   { keys: ['primary+k', 'primary+l'], command: 'convert_to_lowercase' },
 
   // 书签
+  { keys: ['f2'], command: 'rename_symbol' },
   { keys: ['primary+f2'], command: 'toggle_bookmark' },
-  { keys: ['f2'], command: 'next_bookmark' },
+  { keys: ['alt+f2'], command: 'next_bookmark' },
   { keys: ['shift+f2'], command: 'prev_bookmark' },
   { keys: ['primary+shift+f2'], command: 'clear_bookmarks' },
 
@@ -115,5 +116,7 @@ export const DEFAULT_KEYBINDINGS: KeyBindingRule[] = [
 
   // AI
   { keys: ['primary+alt+e'], command: 'ai_inline' },
-  { keys: ['primary+alt+l'], command: 'show_ai_chat' }
+  { keys: ['primary+alt+l'], command: 'show_ai_chat' },
+  { keys: ['ctrl+-'], command: 'nav_back' },
+  { keys: ['ctrl+shift+-'], command: 'nav_forward' }
 ]

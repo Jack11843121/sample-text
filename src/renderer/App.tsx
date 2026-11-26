@@ -9,8 +9,11 @@ import { BuildPanel } from './components/BuildPanel'
 import { FindInFiles } from './components/FindInFiles'
 import { AiInlineModal } from './components/AiInlineModal'
 import { AiChatPanel } from './components/AiChatPanel'
+import { Breadcrumb, OutlinePanel } from './components/SourceStructure'
 import './features/ai'
-import { openFile, reloadFile, refreshGitState, restoreWorkspace, persistWorkspace } from './io'
+import './features/rename'
+import { initDiagnostics } from './features/diagnostics'
+import { openFile, reloadFile, refreshGitState, restoreWorkspace, persistWorkspace, saveAll } from './io'
 import { refreshGitGutter } from './features/gitGutter'
 import { refreshBookmarks } from './features/bookmarks'
 import { emitPluginEvent } from './plugins/host'
@@ -45,6 +48,7 @@ export default function App() {
 
     // 默认强制深色（Sublime 深色系），不跟随系统浅色
     store.setThemeBase('dark')
+    initDiagnostics()
   }, [])
 
   useEffect(() => {
@@ -53,6 +57,27 @@ export default function App() {
     monaco.editor.setTheme(scheme)
     forEachEditor((e) => applyEditorOptions(e))
   }, [state.themeBase, state.activeColorScheme])
+
+  // 自动保存：窗口失焦时保存
+  useEffect(() => {
+    if (state.settings.auto_save !== 'onFocusChange') return
+    const onBlur = (): void => {
+      void saveAll()
+    }
+    window.addEventListener('blur', onBlur)
+    return () => window.removeEventListener('blur', onBlur)
+  }, [state.settings.auto_save])
+
+  // 自动保存：延迟（停止编辑后 N 毫秒保存）
+  useEffect(() => {
+    if (state.settings.auto_save !== 'afterDelay') return
+    const hasDirty = [...state.documents.values()].some((d) => d.dirty)
+    if (!hasDirty) return
+    const t = setTimeout(() => {
+      void saveAll()
+    }, (state.settings.auto_save_delay as number) ?? 1000)
+    return () => clearTimeout(t)
+  }, [state.settings.auto_save, state.settings.auto_save_delay, state.documents])
 
   useEffect(() => {
     void refreshGitGutter(state.activePath)
@@ -82,8 +107,12 @@ export default function App() {
       const e = ev as { event: string; path: string }
       const docs = store.getState().documents
       const doc = docs.get(e.path)
-      if (e.event === 'change' && doc && !doc.dirty) {
-        void reloadFile(e.path)
+      if (e.event === 'change' && doc) {
+        if (!doc.dirty) {
+          void reloadFile(e.path)
+        } else if (window.confirm(`「${e.path.split('/').pop()}」已在外部被修改，但本地有未保存的更改。\n确定 = 放弃本地更改，加载外部版本；取消 = 保留本地更改（保存时将覆盖外部）。`)) {
+          void reloadFile(e.path)
+        }
       }
       if (e.event === 'add' || e.event === 'addDir' || e.event === 'unlink' || e.event === 'unlinkDir') {
         void refreshGitState()
@@ -127,6 +156,7 @@ export default function App() {
         <Sidebar />
         <div className="main-col">
           <TabBar />
+          <Breadcrumb />
           <div className={'editor-area ' + layoutClass}>
             {empty ? (
               <Welcome />
@@ -150,6 +180,7 @@ export default function App() {
       <CommandPalette />
       <AiInlineModal />
       <AiChatPanel />
+      <OutlinePanel />
     </div>
   )
 }

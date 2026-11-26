@@ -3,6 +3,7 @@ import { store } from '../store'
 import { runCommand } from '../commands/registry'
 import { initMonaco, editorTheme } from './monacoSetup'
 import { ensureLanguages, languageForPath } from './languages'
+import { lintJson } from '../features/diagnostics'
 
 initMonaco()
 ensureLanguages()
@@ -48,7 +49,9 @@ export function ensureModel(path: string): monaco.editor.ITextModel {
       const value = model!.getValue()
       store.setValue(path, value)
       recordEditPoint()
+      lintJson(model!)
     })
+    lintJson(model)
     models.set(path, model)
   }
   return model
@@ -64,6 +67,15 @@ export function disposeModel(path: string): void {
     models.delete(path)
     m.dispose()
   }
+}
+
+/** 文件改名后重挂 model（刷新 key 与语言） */
+export function renameModel(oldPath: string, newPath: string): void {
+  const m = models.get(oldPath)
+  if (!m) return
+  models.delete(oldPath)
+  models.set(newPath, m)
+  monaco.editor.setModelLanguage(m, languageForPath(newPath))
 }
 
 function tabSizeOf(): number {
@@ -101,8 +113,10 @@ export function editorOptions(): monaco.editor.IStandaloneEditorConstructionOpti
     renderControlCharacters: true,
     scrollbar: { useShadows: false, verticalHasArrows: false, horizontalHasArrows: false },
     glyphMargin: true,
-    guides: { indentation: true },
+    matchBrackets: 'always',
+    guides: { bracketPairs: true, indentation: true, highlightActiveIndentation: true },
     bracketPairColorization: { enabled: true },
+    stickyScroll: { enabled: true, maxLineCount: 5 },
     'semanticHighlighting.enabled': true,
     suggest: { showWords: true, shareSuggestSelections: true },
     quickSuggestions: { other: true, comments: false, strings: false },
@@ -134,7 +148,10 @@ export function createEditor(
     if (focusedEditor !== editor) focusedEditor = editor
     notifyStatus()
   })
-  editor.onDidChangeCursorPosition(() => notifyStatus())
+  editor.onDidChangeCursorPosition(() => {
+    notifyStatus()
+    recordNavMove()
+  })
   editor.onDidChangeModel(() => notifyStatus())
   installAiContextMenu(editor)
   editors.set(groupId, editor)
@@ -170,6 +187,32 @@ function installAiContextMenu(editor: monaco.editor.IStandaloneCodeEditor): void
     run: () => {
       runCommand('ai_inline')
     }
+  })
+
+  // 常规编辑菜单（VS Code 风格）
+  const navItems: [string, string, string][] = [
+    ['ctx.rename', '重命名符号', 'rename_symbol'],
+    ['ctx.gotodef', '转到定义', 'goto_definition'],
+    ['ctx.references', '查找所有引用', 'goto_reference'],
+    ['ctx.format', '格式化文档', 'format_document']
+  ]
+  navItems.forEach(([id, label, cmd], i) => {
+    editor.addAction({
+      id,
+      label,
+      contextMenuGroupId: 'navigation',
+      contextMenuOrder: 20 + i,
+      run: () => {
+        runCommand(cmd)
+      }
+    })
+  })
+  editor.addAction({
+    id: 'ctx.quickfix',
+    label: '快速修复…',
+    contextMenuGroupId: 'navigation',
+    contextMenuOrder: 30,
+    run: () => editor.trigger('contextmenu', 'editor.action.quickFix', null)
   })
 }
 
@@ -269,6 +312,71 @@ export function prevEditPoint(): void {
   e.setPosition({ lineNumber: p.line, column: p.col })
   e.revealPositionInCenter({ lineNumber: p.line, column: p.col })
   e.focus()
+}
+
+// ---------------------------------------------------------------------------
+// 导航历史（Ctrl+- / Ctrl+Shift+- 前后穿梭）
+// ---------------------------------------------------------------------------
+interface NavLoc {
+  path: string
+  line: number
+  col: number
+}
+const backStack: NavLoc[] = []
+const fwdStack: NavLoc[] = []
+let lastNav: NavLoc | null = null
+let suppressNav = false
+
+function curNavLoc(): NavLoc | null {
+  const e = focusedEditor
+  const p = e?.getPosition()
+  const path = store.getState().activePath
+  if (!e || !p || !path) return null
+  return { path, line: p.lineNumber, col: p.column }
+}
+
+function recordNavMove(): void {
+  if (suppressNav) return
+  const c = curNavLoc()
+  if (!c) {
+    lastNav = null
+    return
+  }
+  if (lastNav && (lastNav.path !== c.path || Math.abs(lastNav.line - c.line) > 5 || Math.abs(lastNav.col - c.col) > 60)) {
+    backStack.push(lastNav)
+    if (backStack.length > 200) backStack.shift()
+    fwdStack.length = 0
+  }
+  lastNav = c
+}
+
+function goNavLoc(loc: NavLoc): void {
+  suppressNav = true
+  store.setActivePath(loc.path)
+  setTimeout(() => {
+    const e = focusedEditor
+    if (e && store.getState().activePath === loc.path) {
+      e.setPosition({ lineNumber: loc.line, column: loc.col })
+      e.revealPositionInCenter({ lineNumber: loc.line, column: loc.col })
+      e.focus()
+    }
+    suppressNav = false
+  }, 40)
+}
+
+export function navigateBack(): void {
+  if (backStack.length === 0) return
+  const cur = curNavLoc()
+  if (cur && curNavLoc()?.path === backStack[backStack.length - 1].path) return
+  if (cur) fwdStack.push(cur)
+  goNavLoc(backStack.pop() as NavLoc)
+}
+
+export function navigateForward(): void {
+  if (fwdStack.length === 0) return
+  const cur = curNavLoc()
+  if (cur) backStack.push(cur)
+  goNavLoc(fwdStack.pop() as NavLoc)
 }
 
 /** 更新编辑器的语言（打开/设置变化时） */

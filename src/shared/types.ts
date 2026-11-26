@@ -255,6 +255,7 @@ export interface SampleTextApi {
   exists(path: string): Promise<boolean>
   deletePath(path: string): Promise<void>
   makeDirectory(path: string): Promise<void>
+  renamePath(oldPath: string, newPath: string): Promise<void>
   showContextMenu(entries: ContextMenuEntry[]): Promise<string | null>
 
   // 项目

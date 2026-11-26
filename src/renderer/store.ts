@@ -68,6 +68,7 @@ export interface UiState {
   statusMessage: string | null
   treeVersion: number
   aiChatOpen: boolean
+  outlineVisible: boolean
   previewScrollTo?: { path: string; line: number }
 }
 
@@ -78,6 +79,8 @@ export interface AppState {
   documents: Map<string, DocState>
   /** 标签顺序（MRU） */
   tabOrder: string[]
+  /** 固定标签（排在最前，不参与「关闭其他」） */
+  pinnedTabs: string[]
   activePath: string | null
   projectData: ProjectData | null
   folderPaths: string[]
@@ -124,6 +127,8 @@ export const DEFAULT_SETTINGS: SettingsDict = {
   show_definitions: true,
   scroll_past_end: true,
   spell_check: false,
+  auto_save: 'off',
+  auto_save_delay: 1000,
   ai: {
     provider: 'openai-compatible',
     baseURL: 'https://api.deepseek.com/v1',
@@ -150,6 +155,7 @@ export class AppStore {
       activeGroupId: 'group-0',
       documents: new Map(),
       tabOrder: [],
+      pinnedTabs: [],
       activePath: null,
       projectData: null,
       folderPaths: [],
@@ -174,7 +180,8 @@ export class AppStore {
         macroRecording: false,
         statusMessage: null,
         treeVersion: 0,
-        aiChatOpen: false
+        aiChatOpen: false,
+        outlineVisible: false
       }
     }
   }
@@ -343,6 +350,50 @@ export class AppStore {
     this.emit()
   }
 
+  /** 拖拽标签排序 */
+  moveTab(fromIndex: number, toIndex: number): void {
+    const order = [...this.state.tabOrder]
+    if (
+      fromIndex < 0 ||
+      toIndex < 0 ||
+      fromIndex >= order.length ||
+      toIndex >= order.length ||
+      fromIndex === toIndex
+    )
+      return
+    const [moved] = order.splice(fromIndex, 1)
+    order.splice(toIndex, 0, moved)
+    this.state.tabOrder = order
+    this.emit()
+  }
+
+  togglePin(path: string): void {
+    const has = this.state.pinnedTabs.includes(path)
+    this.state.pinnedTabs = has
+      ? this.state.pinnedTabs.filter((p) => p !== path)
+      : [...this.state.pinnedTabs, path]
+    this.emit()
+  }
+
+  /** 标签/文档重命名（磁盘已在别处改名后，替换内存里所有路径引用） */
+  renamePath(oldPath: string, newPath: string): void {
+    if (!oldPath || oldPath === newPath) return
+    const tabOrder = this.state.tabOrder.map((p) => (p === oldPath ? newPath : p))
+    const pinned = this.state.pinnedTabs.map((p) => (p === oldPath ? newPath : p))
+    const docs = new Map<string, DocState>()
+    for (const [p, d] of this.state.documents) {
+      docs.set(p === oldPath ? newPath : p, p === oldPath ? { ...d, path: newPath } : d)
+    }
+    this.state.tabOrder = tabOrder
+    this.state.pinnedTabs = pinned
+    this.state.documents = docs
+    if (this.state.activePath === oldPath) this.state.activePath = newPath
+    this.state.groups = this.state.groups.map((g) =>
+      g.activePath === oldPath ? { ...g, activePath: newPath } : g
+    )
+    this.emit()
+  }
+
   setActiveGroup(id: string): void {
     this.state.activeGroupId = id
     const g = this.state.groups.find((x) => x.id === id)
@@ -467,6 +518,10 @@ export class AppStore {
   }
   toggleAiChat(): void {
     this.state.ui = { ...this.state.ui, aiChatOpen: !this.state.ui.aiChatOpen }
+    this.emit()
+  }
+  toggleOutline(): void {
+    this.state.ui = { ...this.state.ui, outlineVisible: !this.state.ui.outlineVisible }
     this.emit()
   }
   notify(message: string, timeoutMs = 3000): void {

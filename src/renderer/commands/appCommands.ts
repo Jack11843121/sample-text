@@ -63,8 +63,12 @@ reg({ command: 'save_all', title: 'Save All', category: 'File' }, async () => {
 })
 reg({ command: 'close_file', title: 'Close File', category: 'File' }, () => closeActive())
 reg({ command: 'close_other_files', title: 'Close Other Files', category: 'File' }, () => {
-  const { activePath, tabOrder } = store.getState()
-  closePaths(tabOrder.filter((p) => p !== activePath))
+  const { activePath, tabOrder, pinnedTabs } = store.getState()
+  closePaths(tabOrder.filter((p) => p !== activePath && !pinnedTabs.includes(p)))
+})
+reg({ command: 'close_saved_tabs', title: 'Close Saved Tabs', category: 'File' }, () => {
+  const { activePath, tabOrder, documents } = store.getState()
+  closePaths(tabOrder.filter((p) => p !== activePath && !documents.get(p)?.dirty))
 })
 reg({ command: 'close_tabs_right', title: 'Close Tabs to the Right', category: 'File' }, () => {
   const { activePath, tabOrder } = store.getState()
@@ -125,6 +129,7 @@ reg({ command: 'use_selection_for_find', title: 'Use Selection for Find', catego
 // 视图 / 布局
 // ---------------------------------------------------------------------------
 reg({ command: 'toggle_sidebar', title: 'Toggle Side Bar', category: 'View' }, () => store.toggleSidebar())
+reg({ command: 'show_outline', title: '显示/隐藏大纲 (Outline)', category: 'View' }, () => store.toggleOutline())
 reg({ command: 'toggle_minimap', title: 'Toggle Minimap', category: 'View' }, () => store.toggleMinimap())
 reg({ command: 'toggle_status_bar', title: 'Toggle Status Bar', category: 'View' }, () => store.toggleStatusBar())
 reg({ command: 'toggle_tabs', title: 'Toggle Tabs', category: 'View' }, () => store.toggleTabs())

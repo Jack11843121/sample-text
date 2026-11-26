@@ -100,6 +100,11 @@ export async function makeDirectory(path: string): Promise<void> {
   await fs.mkdir(path, { recursive: true })
 }
 
+/** 重命名文件/目录 */
+export async function renamePath(oldPath: string, newPath: string): Promise<void> {
+  await fs.rename(oldPath, newPath)
+}
+
 /** 递归列出目录下所有文件（用于 Goto Anything / Find in Files），跳过忽略项 */
 export async function listFiles(root: string): Promise<string[]> {
   const out: string[] = []

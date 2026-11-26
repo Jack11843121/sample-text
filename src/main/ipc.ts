@@ -9,6 +9,7 @@ import {
   listFiles,
   deletePath,
   makeDirectory,
+  renamePath,
   watchPaths,
   type FsChangeEvent
 } from './services/filesystem'
@@ -56,6 +57,7 @@ export function registerIpc(window: BrowserWindow): void {
   handle('fs.listFiles', (root: string) => listFiles(root))
   handle('fs.delete', (path: string) => deletePath(path))
   handle('fs.mkdir', (path: string) => makeDirectory(path))
+  handle('fs.rename', (oldPath: string, newPath: string) => renamePath(oldPath, newPath))
 
   // ---- 右键菜单 ----
   handle('menu.context', (entries: { id: string; label: string; danger?: boolean }[]) => {

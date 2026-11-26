@@ -204,6 +204,8 @@ export function buildMenu(_win: BrowserWindow): Menu {
       label: 'Help',
       role: 'help',
       submenu: [
+        { label: '检查更新…', click: () => sendToFocused('check_for_updates') },
+        { type: 'separator' },
         { label: 'sample-text 文档', click: () => void require('electron').shell.openExternal('https://github.com/Jack11843121/sample-text') },
         { type: 'separator' },
         { role: 'toggleDevTools', label: 'Toggle Developer Tools' }

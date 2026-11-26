@@ -1,4 +1,4 @@
-import { app } from 'electron'
+import { app, dialog, shell } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import type { UpdateInfo } from 'electron-updater'
 import { IPC } from '@shared/types'
@@ -31,18 +31,50 @@ export function initAutoUpdater(sendFn: Send): void {
 }
 
 export async function checkForUpdates(): Promise<void> {
-  if (!app.isPackaged) {
-    send(IPC.UPDATE_STATE, { state: 'error', message: '开发模式下无法检查更新' })
+  const current = app.getVersion()
+  let latest = ''
+  let url = 'https://github.com/Jack11843121/sample-text/releases'
+  try {
+    const res = await fetch('https://api.github.com/repos/Jack11843121/sample-text/releases/latest', {
+      headers: { 'User-Agent': 'sample-text', Accept: 'application/vnd.github+json' }
+    })
+    if (!res.ok) throw new Error('HTTP ' + res.status)
+    const data = (await res.json()) as { tag_name?: string; html_url?: string }
+    latest = String(data.tag_name ?? '').replace(/^v/, '')
+    if (data.html_url) url = data.html_url
+  } catch (err) {
+    send(IPC.UPDATE_STATE, { state: 'error', message: '检查更新失败：' + String((err as Error)?.message ?? err) })
+    await dialog.showMessageBox({
+      type: 'error',
+      title: '检查更新',
+      message: '检查更新失败',
+      detail: String((err as Error)?.message ?? err)
+    })
     return
   }
-  try {
-    await autoUpdater.checkForUpdates()
-  } catch (err) {
-    send(IPC.UPDATE_STATE, {
-      state: 'error',
-      message: `检查更新失败：${String((err as Error)?.message ?? err)}`
+
+  if (!latest || latest === current) {
+    send(IPC.UPDATE_STATE, { state: 'none' })
+    await dialog.showMessageBox({
+      type: 'info',
+      title: '检查更新',
+      message: '已是最新版本',
+      detail: '当前 v' + current
     })
+    return
   }
+
+  send(IPC.UPDATE_STATE, { state: 'available', version: latest })
+  const r = await dialog.showMessageBox({
+    type: 'info',
+    title: '检查更新',
+    message: `发现新版本 v${latest}`,
+    detail: `当前版本 v${current}。可前往 GitHub 下载安装：`,
+    buttons: ['前往下载', '取消'],
+    defaultId: 0,
+    cancelId: 1
+  })
+  if (r.response === 0) void shell.openExternal(url)
 }
 
 export function quitAndInstall(): void {

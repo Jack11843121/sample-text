@@ -162,13 +162,7 @@ export function Sidebar() {
       <div className="sidebar-header titlebar-drag">
         <span className="sidebar-title">资源管理器</span>
         <span className="sidebar-actions no-drag">
-          <button title="新建文件" onClick={() => folders[0] && void createEntry(folders[0], false)}>
-            📄
-          </button>
-          <button title="新建文件夹" onClick={() => folders[0] && void createEntry(folders[0], true)}>
-            📁
-          </button>
-          <button title="打开文件夹" onClick={pickFolder}>
+          <button title="Add Folder" onClick={pickFolder}>
             +
           </button>
         </span>

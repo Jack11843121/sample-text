@@ -22,6 +22,7 @@ export const DEFAULT_KEYBINDINGS: KeyBindingRule[] = [
   { keys: ['primary+alt+s'], command: 'save_all' },
   { keys: ['primary+w'], command: 'close_file' },
   { keys: ['primary+shift+t'], command: 'reopen_last_file' },
+  { keys: ['primary+k', 'primary+w'], command: 'close_all_tabs' },
 
   // 查找
   { keys: ['primary+f'], command: 'show_find' },

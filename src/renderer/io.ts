@@ -230,6 +230,22 @@ export function closePath(path: string): void {
   disposeModel(path)
 }
 
+/** 批量关闭（先统一确认未保存，避免逐个弹窗） */
+export function closePaths(paths: string[]): void {
+  const list = paths.filter(Boolean)
+  if (list.length === 0) return
+  const docs = store.getState().documents
+  const dirty = list.filter((p) => docs.get(p)?.dirty)
+  if (dirty.length > 0) {
+    if (!window.confirm(`将关闭 ${list.length} 个文件，其中 ${dirty.length} 个有未保存的更改。是否继续？`)) return
+  }
+  for (const p of list) {
+    if (!p.startsWith('untitled://')) store.pushClosedFile(p)
+    store.closeDocument(p)
+    disposeModel(p)
+  }
+}
+
 // ---- 状态栏辅助 ----
 export function currentEolLabel(): string {
   const path = getFocusedPath()

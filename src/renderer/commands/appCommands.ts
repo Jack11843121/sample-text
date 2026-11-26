@@ -10,6 +10,7 @@ import { store } from '../store'
 import {
   closeActive,
   closePath,
+  closePaths,
   loadProjectFile,
   openFile,
   openFolder,
@@ -62,10 +63,21 @@ reg({ command: 'save_all', title: 'Save All', category: 'File' }, async () => {
 })
 reg({ command: 'close_file', title: 'Close File', category: 'File' }, () => closeActive())
 reg({ command: 'close_other_files', title: 'Close Other Files', category: 'File' }, () => {
-  const active = store.getState().activePath
-  for (const p of [...store.getState().tabOrder]) {
-    if (p !== active) closePath(p)
-  }
+  const { activePath, tabOrder } = store.getState()
+  closePaths(tabOrder.filter((p) => p !== activePath))
+})
+reg({ command: 'close_tabs_right', title: 'Close Tabs to the Right', category: 'File' }, () => {
+  const { activePath, tabOrder } = store.getState()
+  const i = activePath ? tabOrder.indexOf(activePath) : -1
+  if (i >= 0) closePaths(tabOrder.slice(i + 1))
+})
+reg({ command: 'close_tabs_left', title: 'Close Tabs to the Left', category: 'File' }, () => {
+  const { activePath, tabOrder } = store.getState()
+  const i = activePath ? tabOrder.indexOf(activePath) : -1
+  if (i >= 0) closePaths(tabOrder.slice(0, i))
+})
+reg({ command: 'close_all_tabs', title: 'Close All Tabs', category: 'File' }, () => {
+  closePaths([...store.getState().tabOrder])
 })
 reg({ command: 'reopen_last_file', title: 'Reopen Closed File', category: 'File' }, async () => {
   const closed = store.popClosedFile()

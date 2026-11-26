@@ -95,6 +95,11 @@ export async function deletePath(path: string): Promise<void> {
   await fs.rm(path, { recursive: true, force: true })
 }
 
+/** 新建目录（递归） */
+export async function makeDirectory(path: string): Promise<void> {
+  await fs.mkdir(path, { recursive: true })
+}
+
 /** 递归列出目录下所有文件（用于 Goto Anything / Find in Files），跳过忽略项 */
 export async function listFiles(root: string): Promise<string[]> {
   const out: string[] = []

@@ -254,6 +254,7 @@ export interface SampleTextApi {
   listFiles(root: string): Promise<string[]>
   exists(path: string): Promise<boolean>
   deletePath(path: string): Promise<void>
+  makeDirectory(path: string): Promise<void>
   showContextMenu(entries: ContextMenuEntry[]): Promise<string | null>
 
   // 项目

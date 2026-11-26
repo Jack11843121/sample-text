@@ -8,6 +8,7 @@ import {
   existsOk,
   listFiles,
   deletePath,
+  makeDirectory,
   watchPaths,
   type FsChangeEvent
 } from './services/filesystem'
@@ -54,6 +55,7 @@ export function registerIpc(window: BrowserWindow): void {
   handle('fs.exists', (p: string) => existsOk(p))
   handle('fs.listFiles', (root: string) => listFiles(root))
   handle('fs.delete', (path: string) => deletePath(path))
+  handle('fs.mkdir', (path: string) => makeDirectory(path))
 
   // ---- 右键菜单 ----
   handle('menu.context', (entries: { id: string; label: string; danger?: boolean }[]) => {

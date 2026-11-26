@@ -17,6 +17,10 @@ function baseName(path: string): string {
   return c
 }
 
+function joinPath(dir: string, name: string): string {
+  return dir.replace(/[\\/]+$/, '') + '/' + name
+}
+
 function pickFolder(): void {
   api
     .openFolderDialog()
@@ -35,6 +39,24 @@ function pickFile(): void {
     .catch((e) => store.notify('打开文件失败：' + String(e?.message ?? e), 5000))
 }
 
+async function createEntry(dir: string, isFolder: boolean): Promise<void> {
+  const name = window.prompt(isFolder ? '新建文件夹，名称：' : '新建文件，名称：')
+  if (!name || !name.trim()) return
+  const p = joinPath(dir, name.trim())
+  try {
+    if (isFolder) {
+      await api.makeDirectory(p)
+    } else {
+      await api.writeFile(p, '')
+    }
+    store.bumpTreeVersion()
+    store.notify((isFolder ? '已创建文件夹 ' : '已创建文件 ') + name.trim())
+    if (!isFolder) void openFile(p)
+  } catch (e) {
+    store.notify('创建失败：' + String((e as Error)?.message ?? e), 5000)
+  }
+}
+
 function TreeRow({
   node,
   depth,
@@ -46,7 +68,9 @@ function TreeRow({
 }) {
   const [expanded, setExpanded] = useState(depth === 0)
   const [children, setChildren] = useState<TreeNode[] | null>(null)
-  const treeVersion = useAppState().ui.treeVersion
+  const app = useAppState()
+  const treeVersion = app.ui.treeVersion
+  const activePath = app.activePath
 
   useEffect(() => {
     if (expanded && node.isDirectory) {
@@ -56,23 +80,34 @@ function TreeRow({
   }, [expanded, node.path, treeVersion])
 
   const isDir = node.isDirectory
+  const active = !isDir && activePath === node.path
 
   const onContextMenu = async (e: React.MouseEvent): Promise<void> => {
     e.preventDefault()
     e.stopPropagation()
-    const action = await api.showContextMenu([
-      { id: 'reveal', label: '在文件管理器中显示' },
+    const entries: { id: string; label: string; danger?: boolean }[] = [
       { id: 'copy_path', label: '复制路径' },
-      { id: 'delete', label: '删除', danger: true }
-    ])
+      { id: 'reveal', label: '在文件管理器中显示' }
+    ]
+    if (isDir) {
+      entries.push({ id: 'new_file', label: '新建文件…' })
+      entries.push({ id: 'new_folder', label: '新建文件夹…' })
+    }
+    entries.push({ id: 'delete', label: '删除', danger: true })
+
+    const action = await api.showContextMenu(entries)
     if (action === 'reveal') {
       void api.showItemInFolder(node.path)
     } else if (action === 'copy_path') {
       void api.copyPath(node.path)
       store.notify('已复制路径')
+    } else if (action === 'new_file') {
+      void createEntry(node.path, false)
+    } else if (action === 'new_folder') {
+      void createEntry(node.path, true)
     } else if (action === 'delete') {
       const kind = isDir ? '文件夹' : '文件'
-      if (!window.confirm(`确定删除${kind}「${node.name}」及其内容吗？此操作不可恢复。`)) return
+      if (!window.confirm(`确定删除${kind}「${node.name}」` + (isDir ? '及其内容' : '') + '吗？此操作不可恢复。')) return
       try {
         await api.deletePath(node.path)
         if (store.getState().documents.has(node.path)) closePath(node.path)
@@ -85,10 +120,9 @@ function TreeRow({
   }
 
   return (
-    <>
+    <div className="tree-branch">
       <div
-        className="tree-row"
-        style={{ paddingLeft: depth * 16 + 10 }}
+        className={'tree-row' + (active ? ' active' : '')}
         title={node.path}
         onClick={() => {
           if (isDir) {
@@ -99,12 +133,13 @@ function TreeRow({
         }}
         onContextMenu={(e) => void onContextMenu(e)}
       >
-        <span className={'tree-chevron' + (isDir ? '' : ' hidden')}>{expanded ? '▾' : '▸'}</span>
+        <span className="tree-chevron">{isDir ? (expanded ? '▾' : '▸') : ''}</span>
+        <span className="tree-icon">{isDir ? (expanded ? '📂' : '📁') : '📄'}</span>
         <span className="tree-name">{node.name}</span>
         <span className={'git-badge g-' + gitStatus[node.path]}>{gitStatus[node.path] ?? ''}</span>
       </div>
       {expanded && isDir && children && (
-        <div>
+        <div className="tree-children">
           {children
             .filter((c) => c.isDirectory || isTextFile(c.path))
             .map((c) => (
@@ -112,7 +147,7 @@ function TreeRow({
             ))}
         </div>
       )}
-    </>
+    </div>
   )
 }
 
@@ -125,9 +160,15 @@ export function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-header titlebar-drag">
-        <span className="sidebar-title">FOLDERS</span>
+        <span className="sidebar-title">资源管理器</span>
         <span className="sidebar-actions no-drag">
-          <button title="Add Folder" onClick={pickFolder}>
+          <button title="新建文件" onClick={() => folders[0] && void createEntry(folders[0], false)}>
+            📄
+          </button>
+          <button title="新建文件夹" onClick={() => folders[0] && void createEntry(folders[0], true)}>
+            📁
+          </button>
+          <button title="打开文件夹" onClick={pickFolder}>
             +
           </button>
         </span>
@@ -136,12 +177,8 @@ export function Sidebar() {
         {folders.length === 0 ? (
           <div className="sidebar-empty">
             <p>未打开任何文件夹</p>
-            <button onClick={pickFolder}>
-              Open Folder…
-            </button>
-            <button onClick={pickFile}>
-              Open File…
-            </button>
+            <button onClick={pickFolder}>打开文件夹…</button>
+            <button onClick={pickFile}>打开文件…</button>
           </div>
         ) : (
           folders.map((f) => (

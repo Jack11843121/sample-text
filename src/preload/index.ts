@@ -47,6 +47,7 @@ const api: SampleTextApi = {
   listFiles: (root: string) => invoke<string[]>('fs.listFiles', root),
   exists: (path: string) => invoke<boolean>('fs.exists', path),
   deletePath: (path: string) => invoke<void>('fs.delete', path),
+  makeDirectory: (path: string) => invoke<void>('fs.mkdir', path),
   showContextMenu: (entries: ContextMenuEntry[]) => invoke<string | null>('menu.context', entries),
 
   loadProject: (projectFilePath?: string) => invoke<ProjectData | null>('project.load', projectFilePath),

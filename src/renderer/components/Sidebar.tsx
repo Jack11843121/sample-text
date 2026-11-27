@@ -160,7 +160,6 @@ export function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-header titlebar-drag">
-        <span className="sidebar-title">资源管理器</span>
         <span className="sidebar-actions no-drag">
           <button title="Add Folder" onClick={pickFolder}>
             +

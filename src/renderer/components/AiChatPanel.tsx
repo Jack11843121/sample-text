@@ -58,7 +58,10 @@ export function AiChatPanel() {
           messages.map((m) => (
             <div key={m.id} className={'ai-msg ' + m.role + (m.error ? ' error' : '')}>
               <div className="ai-msg-role">{m.role === 'user' ? '你' : 'AI'}</div>
-              <div className="ai-msg-text">{m.content || (m.busy ? '思考中…' : '')}</div>
+              <div className="ai-msg-text">
+            {m.busy && m.reasoning ? <div className="ai-reasoning">{m.reasoning}</div> : null}
+            {m.content || (m.busy ? <span className="ai-thinking-hint">思考中<span className="ai-dots"><i>·</i><i>·</i><i>·</i></span></span> : '')}
+          </div>
             </div>
           ))
         )}

@@ -179,12 +179,8 @@ async function openOrCreate(path: string, template: string): Promise<void> {
   await openFile(path)
 }
 
-reg({ command: 'open_user_settings', title: 'Preferences: Settings', category: 'Preferences' }, async () => {
-  const p = await api.userSettingsPath()
-  await openOrCreate(
-    p,
-    '{\n\t// 用户设置（覆盖默认值）。示例：\n\t// "ai": { "apiKey": "sk-xxx", "baseURL": "https://api.deepseek.com/v1", "chatModel": "deepseek-chat" },\n\t// "font_size": 14,\n\t// "word_wrap": true\n}\n'
-  )
+reg({ command: 'open_user_settings', title: 'Preferences: Settings', category: 'Preferences' }, () => {
+  store.setSettingsOpen(true)
 })
 reg({ command: 'open_user_keymap', title: 'Preferences: Key Bindings', category: 'Preferences' }, async () => {
   const p = await api.userKeymapPath()

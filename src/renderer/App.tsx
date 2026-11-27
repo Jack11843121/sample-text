@@ -10,6 +10,7 @@ import { FindInFiles } from './components/FindInFiles'
 import { AiInlineModal } from './components/AiInlineModal'
 import { AiChatPanel } from './components/AiChatPanel'
 import { Breadcrumb, OutlinePanel } from './components/SourceStructure'
+import { SettingsPanel } from './components/SettingsPanel'
 import './features/ai'
 import './features/rename'
 import { initDiagnostics } from './features/diagnostics'
@@ -181,6 +182,7 @@ export default function App() {
       <AiInlineModal />
       <AiChatPanel />
       <OutlinePanel />
+      <SettingsPanel />
     </div>
   )
 }

@@ -64,7 +64,14 @@ export function AiInlineModal() {
           </button>
         </div>
 
-        {s.busy && !s.result ? <div className="ai-loading">{s.thinking ? '思考中…' : '正在生成…'}</div> : null}
+        {s.busy && !s.result ? (
+          <div className="ai-loading">
+            <span className="ai-spinner" />
+            <span>{s.thinking ? '思考中' : '正在生成'}</span>
+            <span className="ai-dots"><i>·</i><i>·</i><i>·</i></span>
+          </div>
+        ) : null}
+        {s.thinking && s.reasoning ? <div className="ai-reasoning">{s.reasoning}</div> : null}
         {s.error ? <div className="ai-error">⚠️ {s.error}</div> : null}
         {s.result || s.busy ? (
           <textarea className="ai-result" readOnly value={s.result} placeholder="结果将显示在这里…" />

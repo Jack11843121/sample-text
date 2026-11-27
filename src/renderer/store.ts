@@ -69,6 +69,7 @@ export interface UiState {
   treeVersion: number
   aiChatOpen: boolean
   outlineVisible: boolean
+  settingsOpen: boolean
   previewScrollTo?: { path: string; line: number }
 }
 
@@ -181,7 +182,8 @@ export class AppStore {
         statusMessage: null,
         treeVersion: 0,
         aiChatOpen: false,
-        outlineVisible: false
+        outlineVisible: false,
+        settingsOpen: false
       }
     }
   }
@@ -522,6 +524,10 @@ export class AppStore {
   }
   toggleOutline(): void {
     this.state.ui = { ...this.state.ui, outlineVisible: !this.state.ui.outlineVisible }
+    this.emit()
+  }
+  setSettingsOpen(open: boolean): void {
+    this.state.ui = { ...this.state.ui, settingsOpen: open }
     this.emit()
   }
   notify(message: string, timeoutMs = 3000): void {

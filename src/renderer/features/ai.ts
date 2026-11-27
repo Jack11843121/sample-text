@@ -13,6 +13,7 @@ export interface ChatMsg {
   id: number
   role: 'user' | 'assistant'
   content: string
+  reasoning?: string
   busy?: boolean
   error?: boolean
 }
@@ -51,6 +52,7 @@ export interface AiInlineState {
   lang: string
   customPrompt: string
   result: string
+  reasoning: string
   busy: boolean
   thinking: boolean
   error: string
@@ -62,6 +64,7 @@ const aiInline: AiInlineState = {
   lang: '',
   customPrompt: '',
   result: '',
+  reasoning: '',
   busy: false,
   thinking: false,
   error: ''
@@ -215,6 +218,7 @@ export function openAiInline(actionKey?: string): void {
   aiInline.lang = lang
   aiInline.customPrompt = ''
   aiInline.result = ''
+  aiInline.reasoning = ''
   aiInline.busy = false
   aiInline.thinking = false
   aiInline.error = ''
@@ -225,6 +229,7 @@ export function openAiInline(actionKey?: string): void {
 export function closeAiInline(): void {
   aiInline.open = false
   aiInline.result = ''
+  aiInline.reasoning = ''
   aiInline.busy = false
   aiInline.thinking = false
   aiInline.error = ''
@@ -253,6 +258,7 @@ export function runAiAction(actionKey: string): void {
   aiInline.result = ''
   aiInline.error = ''
   aiInline.busy = true
+  aiInline.reasoning = ''
   aiInline.thinking = false
   notifyInline()
   streamChat(
@@ -277,8 +283,9 @@ export function runAiAction(actionKey: string): void {
       aiInline.busy = false
       notifyInline()
     },
-    () => {
+    (d) => {
       aiInline.thinking = true
+      aiInline.reasoning += d
       notifyInline()
     }
   )
@@ -295,6 +302,7 @@ export function runAiCustomPrompt(): void {
   aiInline.result = ''
   aiInline.error = ''
   aiInline.busy = true
+  aiInline.reasoning = ''
   aiInline.thinking = false
   notifyInline()
   streamChat(
@@ -319,8 +327,9 @@ export function runAiCustomPrompt(): void {
       aiInline.busy = false
       notifyInline()
     },
-    () => {
+    (d) => {
       aiInline.thinking = true
+      aiInline.reasoning += d
       notifyInline()
     }
   )
@@ -376,6 +385,10 @@ export function sendChat(text: string): void {
     (msg) => {
       chatMessages = chatMessages.map((m) => (m.id === asstMsg.id ? { ...m, content: '⚠️ ' + msg, busy: false, error: true } : m))
       chatBusy = false
+      notifyChat()
+    },
+    (d) => {
+      chatMessages = chatMessages.map((m) => (m.id === asstMsg.id ? { ...m, reasoning: (m.reasoning ?? '') + d } : m))
       notifyChat()
     }
   )

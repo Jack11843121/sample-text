@@ -167,8 +167,13 @@
   width: 18px;
   min-width: 18px;
   flex: none;
-  font-size: 13px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tree-icon svg {
+  display: block;
+  flex: none;
 }
 .tree-name {
   overflow: hidden;

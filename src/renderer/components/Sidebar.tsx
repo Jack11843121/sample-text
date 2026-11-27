@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { store, useAppState } from '../store'
 import { openFile, openFolder, closePath } from '../io'
 import { isTextFile } from '../editor/languages'
+import { TreeNodeIcon } from './TreeNodeIcon'
 import type { TreeNode } from '@shared/types'
 
 const api = window.sampleText
@@ -134,7 +135,7 @@ function TreeRow({
         onContextMenu={(e) => void onContextMenu(e)}
       >
         <span className="tree-chevron">{isDir ? (expanded ? '▾' : '▸') : ''}</span>
-        <span className="tree-icon">{isDir ? (expanded ? '📂' : '📁') : '📄'}</span>
+        <TreeNodeIcon path={node.path} isDirectory={isDir} expanded={expanded} />
         <span className="tree-name">{node.name}</span>
         <span className={'git-badge g-' + gitStatus[node.path]}>{gitStatus[node.path] ?? ''}</span>
       </div>
